@@ -141,6 +141,12 @@ func scanDir(
 	return totalSize, nil
 }
 
+type childResult struct {
+	path string
+	size int64
+	err  error
+}
+
 type ChildTuple struct {
 	Path string
 	Size int64
@@ -184,6 +190,8 @@ func generateJson(data any, fileName string) error {
 	defer f.Close()
 
 	encoder := json.NewEncoder(f)
+
+	// For production, no setindent
 	encoder.SetIndent("", " ")
 	if err := encoder.Encode(data); err != nil {
 		panic(err)
@@ -214,19 +222,20 @@ func main() {
 	if _, err := scanDir(root, folderMap, excludeSet, viz_limit, verbose); err != nil {
 		panic(err)
 	}
+	if err := generateJson(folderMap, "foldermap.json"); err != nil {
+		panic(err)
+	}
 
-	// // topKinfoMap has a format of {directory : list of topK largest subdirecotires}.
-	// for dirName, dirNode := range folderMap {
-	// 	// Skip the topK search if the length is smaller then viz limit.
-	// 	if len(dirNode.Children) <= viz_limit {
-	// 		continue
-	// 	}
-	// 	h := findLargestSubdirs(folderMap, dirName, viz_limit)
-	// 	for h.Len() > 0 {
-	// 		childDirNode := heap.Pop(h).(DirNode)
-	// 		childDirPath := filepath.Join(dirName, childDirNode.FolderName)
-	// 		dirNode.TopKChildren = append(dirNode.TopKChildren, childDirPath)
-	// 	}
+	// fix the deadlock!
+	// parallelism := max(4, runtime.GOMAXPROCS(0)*2)
+	// sem := make(chan struct{}, parallelism)
+	// var mu sync.Mutex
+
+	// if _, err := scanDirConcurrent(root, folderMap, excludeSet, viz_limit, verbose, sem, &mu); err != nil {
+	// 	panic(err)
 	// }
-	generateJson(folderMap, "foldermap.json")
+
+	// if err := generateJson(folderMap, "foldermap.json"); err != nil {
+	// 	panic(err)
+	// }
 }
