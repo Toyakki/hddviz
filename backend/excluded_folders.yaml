@@ -1,0 +1,7 @@
+# Contains the list of folders to exclude from the scan. This allows users to exclude folders that they do not want to be visualized to avoid cluttering. 
+mac:
+    exclude:
+        - .Trash
+        - Desktop
+        - Documents
+        - Downloads
