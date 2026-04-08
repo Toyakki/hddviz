@@ -141,12 +141,6 @@ func scanDir(
 	return totalSize, nil
 }
 
-type childResult struct {
-	path string
-	size int64
-	err  error
-}
-
 type ChildTuple struct {
 	Path string
 	Size int64
@@ -204,7 +198,6 @@ func main() {
 	var username string
 	fmt.Print("Enter your username: ")
 	fmt.Scanln(&username)
-
 	// Basic sanitization
 	username = strings.TrimSpace(username)
 
