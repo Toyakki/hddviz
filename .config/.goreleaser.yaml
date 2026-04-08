@@ -23,21 +23,6 @@ universal_binaries:
   - id: hddviz
     replace: true
 
-archives:
-  - id: hddviz
-    ids:
-      - hddviz
-    formats:
-      - tar.gz
-    name_template: >-
-      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
-    files:
-      - LICENSE*
-      - README*
-
-checksum:
-  name_template: checksums.txt
-
 release:
   prerelease: auto
 
