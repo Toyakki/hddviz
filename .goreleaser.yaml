@@ -4,7 +4,8 @@ project_name: hddviz
 
 builds:
   - id: hddviz
-    main: ./src
+    dir: ./src
+    main: .
     binary: hddviz
     env:
       - CGO_ENABLED=0
