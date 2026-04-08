@@ -7,34 +7,52 @@ on:
     branches: [ "main" ]
 
 permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
+  contents: read
+
 
 jobs:
-  Formatter:
-    runs-on: ubuntu-20.04
+  formatter:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: src
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.25.6'
-      - name: Run go fmt
-        working-directory: src
-        run: go fmt
+          go-version: '1.25'
+          cache-dependency-path: src/go.sum
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "The following files are not properly formatted:"
+            echo "$unformatted"
+            gofmt -d .
+            exit 1
+          fi
       - name: Run go vet
-        working-directory: src
-        run: go vet
+        run: go vet ./...
   
   golangci-lint:
     runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: src
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.25.6'
+          go-version: '1.25'
+          cache-dependency-path: src/go.sum
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.11
           working-directory: src
