@@ -1,9 +1,10 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
-
+version: 2
 project_name: hddviz
 
 builds:
   - id: hddviz
+    main: ./src
     binary: hddviz
     env:
       - CGO_ENABLED=0
@@ -39,7 +40,7 @@ homebrew_casks:
 
     homepage: "https://github.com/Toyakki/hddviz"
     description: "CLI tool to simplify HDD usage visualization"
-    license: "GNU General Public License v3.0"
+    license: "GPL-3.0-only"
 
     binaries:
       - hddviz

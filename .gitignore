@@ -33,3 +33,4 @@ go.work.sum
 frontend/*.json
 .DS_Store
 experimental-*/
+.config
