@@ -1,0 +1,23 @@
+
+name: linting
+
+on:
+  push:
+    tags:
+        - "*"
+
+permissions:
+    contents: write
+
+jobs:
+  Release:
+    runs-on: ubuntu-20.04
+    steps:
+        - name: Run GoReleaser
+          uses: goreleaser/goreleaser-action@v6
+          with:
+            version: "~> v2"
+            args: release --clean
+          env:
+            GITHUB_TOKEN: ${{ secrets.HDDVIZ_GITHUB_TOKEN }}
+            TAP_GITHUB_TOKEN: ${{ secrets.HDDVIZ_TAP_GITHUB_TOKEN }}

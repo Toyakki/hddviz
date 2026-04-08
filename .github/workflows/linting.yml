@@ -1,4 +1,4 @@
-name: Lint & Format
+name: linting
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   Formatter:
-    runs-on: macos-15
+    runs-on: ubuntu-20.04
     steps:
       - name: Set up Go
         uses: actions/setup-go@v6

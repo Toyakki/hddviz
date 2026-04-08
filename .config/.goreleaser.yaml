@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+project_name: hddviz
+
+builds:
+  - id: hddviz
+    binary: hddviz
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -mod=vendor
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+universal_binaries:
+  - id: hddviz
+    replace: true
+
+archives:
+  - id: hddviz
+    ids:
+      - hddviz
+    formats:
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - LICENSE*
+      - README*
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  prerelease: auto
+
+homebrew_casks:
+  - name: hddviz
+    repository:
+      owner: hddviz
+      name: homebrew-hddviz
+      branch: main
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: Toyakki
+      email: lopko1001@gmail.com
+
+    homepage: "https://github.com/Toyakki/hddviz"
+    description: "CLI tool to simplify HDD usage visualization"
+    license: "GNU General Public License v3.0"
+
+    binaries:
+      - hddviz
+
+    url:
+      verified: "github.com/Toyakki/hddviz/"
+
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/hddviz"]
+          end
