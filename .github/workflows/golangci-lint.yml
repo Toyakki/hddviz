@@ -16,14 +16,26 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25.6'
       - name: Run go fmt
         working-directory: src
-        run: go fmt ./...
+        run: go fmt
       - name: Run go vet
         working-directory: src
-        run: go vet ./...
+        run: go vet
   
-        
+  golangci-lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.6'
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.11
+          working-directory: src
+          args: --timeout 5m
