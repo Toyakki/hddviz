@@ -34,7 +34,7 @@ jobs:
           else
             raw="$(tr -d '[:space:]' < VERSION)"
           fi
-          tag = "v$raw"
+          tag="v$raw"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "Resolved tag: $tag"
       - name: Push a new tag
