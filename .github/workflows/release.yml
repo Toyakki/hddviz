@@ -1,23 +1,33 @@
-
-name: linting
+name: release
 
 on:
   push:
     tags:
-        - "*"
+      - "*"
 
 permissions:
-    contents: write
+  contents: write
 
 jobs:
-  Release:
-    runs-on: ubuntu-20.04
+  release:
+    runs-on: ubuntu-24.04
     steps:
-        - name: Run GoReleaser
-          uses: goreleaser/goreleaser-action@v6
-          with:
-            version: "~> v2"
-            args: release --clean
-          env:
-            GITHUB_TOKEN: ${{ secrets.HDDVIZ_GITHUB_TOKEN }}
-            TAP_GITHUB_TOKEN: ${{ secrets.HDDVIZ_TAP_GITHUB_TOKEN }}
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25"
+          cache-dependency-path: src/go.sum
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.HDDVIZ_GITHUB_TOKEN }}
+          TAP_GITHUB_TOKEN: ${{ secrets.HDDVIZ_TAP_GITHUB_TOKEN }}
