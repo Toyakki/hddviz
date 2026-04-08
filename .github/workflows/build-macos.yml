@@ -40,7 +40,8 @@ jobs:
         run: go vet ./...
   
   golangci-lint:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -60,11 +61,8 @@ jobs:
     needs: 
       - basiclint
       - golangci-lint
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, macos-15]
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-15
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: src
