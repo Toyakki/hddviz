@@ -34,7 +34,7 @@ Why is it good for me?
 
 
 - Setup CI/CD pipeline 
-  - Dependabot
+  - Dependabot (optional since I am not planning to update go.mod)
   - goreleaser
   - Github actions for testing and building
   - Linting

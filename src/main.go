@@ -21,11 +21,6 @@ const MiB = 1 << 20
 const GiB = 1 << 30
 const TiB = 1 << 40
 
-//	type HiddenFolderNames struct {
-//		Mac struct {
-//			Exclude []string `yaml:"exclude"`
-//		} `yaml:"mac"`
-//	}
 type Config struct {
 	ExcludedFolders []string `json:"excluded_folders"`
 }
@@ -35,7 +30,10 @@ func readConfig(filename string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer jsonFile.Close()
+	if err := jsonFile.Close(); err != nil {
+		fmt.Println("Error closing file:", err)
+		return nil, err
+	}
 	byteVals, err := io.ReadAll(jsonFile)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
