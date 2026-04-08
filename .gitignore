@@ -34,3 +34,4 @@ frontend/*.json
 .DS_Store
 experimental-*/
 .config
+dist/

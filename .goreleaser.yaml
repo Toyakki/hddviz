@@ -31,8 +31,8 @@ release:
 homebrew_casks:
   - name: hddviz
     repository:
-      owner: hddviz
-      name: homebrew-hddviz
+      owner: Toyakki
+      name: hddviz
       branch: main
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
     commit_author:
