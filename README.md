@@ -27,19 +27,6 @@ Why is it good for me?
 ## How to use this cli.
 
 ## TODOs
-
-- Read GHA documentation quickstart
-- Read goreleaser documentation quickstart
-- Read two Dev articles on CI/CD for setting up
-
-
-- Setup CI/CD pipeline 
-  - Dependabot (optional since I am not planning to update go.mod)
-  - goreleaser
-  - Github actions for testing and building
-  - Linting
-
-- Config.json instead of yaml for configuration
 - Add goroutine for concurrent scanning of directories to improve performance
 
 ## After turning into Public
@@ -47,11 +34,17 @@ Why is it good for me?
 - Add a PR config, protect main branch. 
 
 Code quality:
+- code structure decoupling
+  - Scanning logic
+  - REPL logic
+
+
 - Better error handling and logging
   - log vs fprinln vs fmt.errorf vs errors package
   - Good guide: https://www.jetbrains.com/guide/go/tutorials/handle_errors_in_go/error_technique/
-
 - Add some unit tests
+
+
 
 New features:
 - A fancier welcome screen.
