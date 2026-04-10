@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/heap"
 	"errors"
 	"fmt"
 	"os"
@@ -20,44 +19,44 @@ type ScanStats struct {
 	Skipped []string
 }
 
-type ChildTuple struct {
-	Path string
-	Size int64
-}
+// type ChildTuple struct {
+// 	Path string
+// 	Size int64
+// }
 
-type TupleHeap []ChildTuple
+// type TupleHeap []ChildTuple
 
-func (h TupleHeap) Len() int { return len(h) }
+// func (h TupleHeap) Len() int { return len(h) }
 
-// Make sure that each subdirectory's size is compared.
-func (h TupleHeap) Less(i, j int) bool { return h[i].Size < h[j].Size }
-func (h TupleHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+// // Make sure that each subdirectory's size is compared.
+// func (h TupleHeap) Less(i, j int) bool { return h[i].Size < h[j].Size }
+// func (h TupleHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 
-func (h *TupleHeap) Push(x any) {
-	// Retrieve the underlying concrete value from an interface variable
-	*h = append(*h, x.(ChildTuple))
-}
+// func (h *TupleHeap) Push(x any) {
+// 	// Retrieve the underlying concrete value from an interface variable
+// 	*h = append(*h, x.(ChildTuple))
+// }
 
-func (h *TupleHeap) Pop() any {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
-}
+// func (h *TupleHeap) Pop() any {
+// 	old := *h
+// 	n := len(old)
+// 	x := old[n-1]
+// 	*h = old[0 : n-1]
+// 	return x
+// }
 
-func filterChildren(h *TupleHeap) []string {
-	n := h.Len()
-	out := make([]string, n)
-	for i := 0; h.Len() > 0; i++ {
-		out[i] = heap.Pop(h).(ChildTuple).Path
-	}
-	// Reverse order largest -> smallest.
-	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
-		out[i], out[j] = out[j], out[i]
-	}
-	return out
-}
+// func filterChildren(h *TupleHeap) []string {
+// 	n := h.Len()
+// 	out := make([]string, n)
+// 	for i := 0; h.Len() > 0; i++ {
+// 		out[i] = heap.Pop(h).(ChildTuple).Path
+// 	}
+// 	// Reverse order largest -> smallest.
+// 	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+// 		out[i], out[j] = out[j], out[i]
+// 	}
+// 	return out
+// }
 
 func sendErr(errCh chan<- error, err error) {
 	if err == nil {
@@ -138,56 +137,51 @@ func scanDirConcurrent(
 
 func start_scanning_concurrent() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	// Fresh state per run for fair timing
+	folderMap := make(map[string]*DirNode)
+	stats := &ScanStats{}
+	errCh := make(chan error)
 
-	const runs = 10
-	for range runs {
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	var errsMu sync.Mutex
 
-		// Fresh state per run for fair timing
-		folderMap := make(map[string]*DirNode)
-		stats := &ScanStats{}
-		errCh := make(chan error)
-
-		var wg sync.WaitGroup
-		var mu sync.Mutex
-		var errsMu sync.Mutex
-
-		errs := make([]error, 0, 16)
-		collectDone := make(chan struct{})
-		go func() {
-			defer close(collectDone)
-			for err := range errCh {
-				errsMu.Lock()
-				errs = append(errs, err)
-				errsMu.Unlock()
-			}
-		}()
-		wg.Add(1)
-		go scanDirConcurrent(
-			"/Users/Tohya",
-			folderMap,
-			10,
-			stats,
-			&wg,
-			errCh,
-			&mu,
-		)
-
-		go func() {
-			wg.Wait()
-			close(errCh)
-		}()
-
-		<-collectDone
-
-		if len(errs) > 0 {
-			for _, err := range errs {
-				fmt.Println("Error occurred:", err)
-			}
-			os.Exit(1)
+	errs := make([]error, 0, 16)
+	collectDone := make(chan struct{})
+	go func() {
+		defer close(collectDone)
+		for err := range errCh {
+			errsMu.Lock()
+			errs = append(errs, err)
+			errsMu.Unlock()
 		}
+	}()
+	wg.Add(1)
+	go scanDirConcurrent(
+		"/Users/Tohya",
+		folderMap,
+		10,
+		stats,
+		&wg,
+		errCh,
+		&mu,
+	)
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	<-collectDone
+
+	if len(errs) > 0 {
+		for _, err := range errs {
+			fmt.Println("Error occurred:", err)
+		}
+		os.Exit(1)
 	}
 }
 
 func main() {
-
+	start_scanning_concurrent()
 }
