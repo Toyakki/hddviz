@@ -25,35 +25,29 @@ Why is it good for me?
 
 
 ## How to use this cli.
+Documentation coming soon!
 
 ## TODOs
-- Add goroutine for concurrent scanning of directories to improve performance
-
-## After turning into Public
-- Add a license
+### Public deployment
 - Add a PR config, protect main branch. 
+- Support for Windows? Currently only tested on macOS.
 
-Code quality:
-- code structure decoupling
-  - Scanning logic
-  - REPL logic
+### Development:
 
-
+#### Code quality:
 - Better error handling and logging
   - log vs fprinln vs fmt.errorf vs errors package
   - Good guide: https://www.jetbrains.com/guide/go/tutorials/handle_errors_in_go/error_technique/
 - Add some unit tests
 
-
-
-New features:
+#### Features:
 - A fancier welcome screen.
-- Relative path support for cd, inspect and ls.
 - Tab completion for path.
-
-Deployment
-- Releases
-- support for windows
+- Add goroutine for concurrent scanning of directories to improve performance. Both blocking and non-blocking versions.
+  - Three-level system:
+    - Non-blocking
+    - Blocking
+    - Serial
 
 
 ## Future extensions

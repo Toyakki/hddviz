@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -40,6 +41,45 @@ type ScanStats struct {
 	Skipped []string
 }
 
+type ChildTuple struct {
+	Path string
+	Size int64
+}
+
+type TupleHeap []ChildTuple
+
+func (h TupleHeap) Len() int { return len(h) }
+
+// Make sure that each subdirectory's size is compared.
+func (h TupleHeap) Less(i, j int) bool { return h[i].Size < h[j].Size }
+func (h TupleHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *TupleHeap) Push(x any) {
+	// Retrieve the underlying concrete value from an interface variable
+	*h = append(*h, x.(ChildTuple))
+}
+
+func (h *TupleHeap) Pop() any {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+func filterChildren(h *TupleHeap) []string {
+	n := h.Len()
+	out := make([]string, n)
+	for i := 0; h.Len() > 0; i++ {
+		out[i] = heap.Pop(h).(ChildTuple).Path
+	}
+	// Reverse order largest -> smallest.
+	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+		out[i], out[j] = out[j], out[i]
+	}
+	return out
+}
+
 // DFS bottom-up approach to compute the directory size and its topk largest subdirectories.
 func scanDir(
 	parentPath string,
@@ -53,7 +93,7 @@ func scanDir(
 
 	entries, err := os.ReadDir(parentPath)
 	if err != nil {
-		if errors.Is(err, os.ErrPermission) {
+		if errors.Is(err, os.ErrPermission) || errors.Is(err, fs.ErrNotExist) {
 			stats.Skipped = append(stats.Skipped, parentPath)
 			fmt.Println("Skipped permission denied:", parentPath)
 			return 0, nil
@@ -97,41 +137,27 @@ func scanDir(
 	return totalSize, nil
 }
 
-type ChildTuple struct {
-	Path string
-	Size int64
-}
+func start_scanning(absRoot string, limit int) (map[string]*DirNode, error) {
 
-type TupleHeap []ChildTuple
-
-func (h TupleHeap) Len() int { return len(h) }
-
-// Make sure that each subdirectory's size is compared.
-func (h TupleHeap) Less(i, j int) bool { return h[i].Size < h[j].Size }
-func (h TupleHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *TupleHeap) Push(x any) {
-	// Retrieve the underlying concrete value from an interface variable
-	*h = append(*h, x.(ChildTuple))
-}
-
-func (h *TupleHeap) Pop() any {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
-}
-
-func filterChildren(h *TupleHeap) []string {
-	n := h.Len()
-	out := make([]string, n)
-	for i := 0; h.Len() > 0; i++ {
-		out[i] = heap.Pop(h).(ChildTuple).Path
+	if _, err := os.Stat(absRoot); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Fprintln(os.Stderr, "root does not exist: ", absRoot)
+			return nil, err
+		}
+		fmt.Fprintln(os.Stderr, "cannot access root: ", err)
+		return nil, err
 	}
-	// Reverse order largest -> smallest.
-	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
-		out[i], out[j] = out[j], out[i]
+
+	folderMap := make(map[string]*DirNode)
+	stats := &ScanStats{}
+	if _, err := scanDir(absRoot, folderMap, limit, stats); err != nil {
+		fmt.Fprintln(os.Stderr, "scan failed:", err)
+		return nil, err
 	}
-	return out
+	if len(stats.Skipped) > 0 {
+		fmt.Printf("\nSkipped %d directories due to access issues.\n", len(stats.Skipped))
+	}
+	fmt.Printf("")
+	fmt.Println("Scanning completed!")
+	return folderMap, nil
 }
