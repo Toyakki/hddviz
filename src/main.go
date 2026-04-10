@@ -23,7 +23,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	var folderMap map[string]*DirNode
-	folderMap, err = start_scanning(absRoot, *limit)
+	folderMap, err := start_scanning(absRoot, *limit)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "invalid scanning: ", err)
+		os.Exit(1)
+	}
 	runREPL(folderMap, absRoot)
 }
