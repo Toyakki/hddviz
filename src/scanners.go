@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-// Peak coding
+// Declaring data type is a peak coding practice
 type ByteSize float64
 
 const (
@@ -103,14 +103,18 @@ func scanDir(
 	if err != nil {
 		if errors.Is(err, fs.ErrPermission) {
 			stats.Skipped = append(stats.Skipped, parentPath)
-			return 0, fmt.Errorf("Skipped permission denied for the path %q:  %w", parentPath, err)
+			return 0, fmt.Errorf("skipped permission denied for the path %q:  %w", parentPath, err)
 		} else if errors.Is(err, fs.ErrNotExist) {
 			stats.Skipped = append(stats.Skipped, parentPath)
-			return 0, fmt.Errorf("Skipped non-existent directory for the path %q:  %w", parentPath, err)
+			return 0, fmt.Errorf("skipped non-existent directory for the path %q:  %w", parentPath, err)
 		}
-		return 0, fmt.Errorf("Unexpected error for the path %q:  %w", parentPath, err)
+		return 0, fmt.Errorf("unexpected error for the path %q:  %w", parentPath, err)
 	}
 	for _, entry := range entries {
+		// Avoid symlink just in case
+		if entry.Type()&os.ModeSymlink != 0 {
+			continue
+		}
 		childPath := filepath.Join(parentPath, entry.Name())
 		if entry.IsDir() {
 			childSize, err := scanDir(
@@ -139,7 +143,7 @@ func scanDir(
 				if errors.Is(err, os.ErrPermission) {
 					continue
 				}
-				return 0, fmt.Errorf("Unexpected error when opening a file %q: %w", info, err)
+				return 0, fmt.Errorf("unexpected error when opening a file %q: %w", info, err)
 			}
 			totalSize += info.Size()
 		}
@@ -157,7 +161,7 @@ func scanDir(
 func start_scanning(absRoot string, limit int) (map[string]*DirNode, error) {
 
 	if _, err := os.Stat(absRoot); err != nil {
-		return nil, fmt.Errorf("Cannot access root %q: %w", absRoot, err)
+		return nil, fmt.Errorf("cannot access root %q: %w", absRoot, err)
 	}
 	// absRoot = "/Users/Tohya/Library/Application Support/firebase-heartbeat"
 	folderMap := make(map[string]*DirNode)
@@ -167,7 +171,7 @@ func start_scanning(absRoot string, limit int) (map[string]*DirNode, error) {
 		return nil, err
 	}
 	if len(stats.Skipped) > 0 {
-		fmt.Printf("\nSkipped %d directories due to access issues. Consider running 'sudo hddviz' to bypass the permission issue.\n", len(stats.Skipped))
+		fmt.Printf("\nSkipped %d directories/files due to access issues. Consider running 'sudo hddviz' to bypass the permission issue.\n", len(stats.Skipped))
 	}
 	fmt.Println("")
 	fmt.Println("Scanning completed!")
