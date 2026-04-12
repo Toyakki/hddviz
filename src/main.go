@@ -28,7 +28,7 @@ func main() {
 	folderMap, err := start_scanning(absRoot, *limit)
 	if err != nil {
 		cause := errors.Unwrap(err)
-		fmt.Fprintln(os.Stderr, "Scanning faileed: ", cause)
+		fmt.Fprintln(os.Stderr, "Scanning failed: ", cause)
 		os.Exit(1)
 	}
 	runREPL(folderMap, absRoot)

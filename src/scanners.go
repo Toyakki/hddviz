@@ -101,7 +101,7 @@ func scanDir(
 
 	entries, err := os.ReadDir(parentPath)
 	if err != nil {
-		if errors.Is(err, os.ErrPermission) {
+		if errors.Is(err, fs.ErrPermission) {
 			stats.Skipped = append(stats.Skipped, parentPath)
 			return 0, fmt.Errorf("Skipped permission denied for the path %q:  %w", parentPath, err)
 		} else if errors.Is(err, fs.ErrNotExist) {
@@ -119,8 +119,13 @@ func scanDir(
 				limit,
 				stats,
 			)
-			// Avoid unnecessary wrapping from the recursive call.
+
 			if err != nil {
+				var pathError *fs.PathError
+				if errors.As(err, &pathError) {
+					continue
+				}
+				// Avoid unnecessary wrapping from the recursive call.
 				return 0, err
 			}
 			totalSize += childSize
@@ -154,7 +159,7 @@ func start_scanning(absRoot string, limit int) (map[string]*DirNode, error) {
 	if _, err := os.Stat(absRoot); err != nil {
 		return nil, fmt.Errorf("Cannot access root %q: %w", absRoot, err)
 	}
-
+	// absRoot = "/Users/Tohya/Library/Application Support/firebase-heartbeat"
 	folderMap := make(map[string]*DirNode)
 	stats := &ScanStats{}
 	if _, err := scanDir(absRoot, folderMap, limit, stats); err != nil {
@@ -162,9 +167,9 @@ func start_scanning(absRoot string, limit int) (map[string]*DirNode, error) {
 		return nil, err
 	}
 	if len(stats.Skipped) > 0 {
-		fmt.Printf("\nSkipped %d directories due to access issues.\n", len(stats.Skipped))
+		fmt.Printf("\nSkipped %d directories due to access issues. Consider running 'sudo hddviz' to bypass the permission issue.\n", len(stats.Skipped))
 	}
-	fmt.Printf("")
+	fmt.Println("")
 	fmt.Println("Scanning completed!")
 	return folderMap, nil
 }
