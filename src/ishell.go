@@ -19,10 +19,10 @@ func printNode(path string, folderMap map[string]*DirNode) {
 	node := folderMap[path]
 	fmt.Println("path:", path)
 	fmt.Println("name:", node.FolderName)
-	fmt.Println("size:", sizeify(node.Size))
+	fmt.Println("size:", sizeify(ByteSize(node.Size)))
 	fmt.Println("top children:")
 	for _, child := range node.TopKChildren {
-		fmt.Println(" -", child, "(", sizeify(folderMap[child].Size), ")")
+		fmt.Println(" -", child, "(", sizeify(ByteSize(folderMap[child].Size)), ")")
 	}
 }
 

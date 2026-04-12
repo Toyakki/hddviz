@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -10,7 +11,8 @@ import (
 func main() {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 
 	root := flag.String("root", home, "root directory to scan")
@@ -19,13 +21,14 @@ func main() {
 	flag.Parse()
 	absRoot, err := filepath.Abs(*root)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "invalid root: ", err)
+		fmt.Fprintln(os.Stderr, "invalid abs path: ", err)
 		os.Exit(1)
 	}
 
 	folderMap, err := start_scanning(absRoot, *limit)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "invalid scanning: ", err)
+		cause := errors.Unwrap(err)
+		fmt.Fprintln(os.Stderr, "Scanning faileed: ", cause)
 		os.Exit(1)
 	}
 	runREPL(folderMap, absRoot)

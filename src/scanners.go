@@ -9,14 +9,19 @@ import (
 	"path/filepath"
 )
 
-// Constants, easy to configure.
-const KiB = 1 << 10
-const MiB = 1 << 20
-const GiB = 1 << 30
-const TiB = 1 << 40
+// Peak coding
+type ByteSize float64
+
+const (
+	_            = iota
+	KiB ByteSize = 1 << (10 * iota)
+	MiB
+	GiB
+	TiB
+)
 
 // Convert bytes to KiB, MiB, GiB, or TiB for readability
-func sizeify(size int64) string {
+func sizeify(size ByteSize) string {
 	switch {
 	case size >= TiB:
 		return fmt.Sprintf("%.2f TiB", float64(size)/float64(TiB))
@@ -27,7 +32,7 @@ func sizeify(size int64) string {
 	case size >= KiB:
 		return fmt.Sprintf("%.2f KiB", float64(size)/float64(KiB))
 	default:
-		return fmt.Sprintf("%d bytes", size)
+		return fmt.Sprintf("%.2f bytes", size)
 	}
 }
 
@@ -55,7 +60,6 @@ func (h TupleHeap) Less(i, j int) bool { return h[i].Size < h[j].Size }
 func (h TupleHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 
 func (h *TupleHeap) Push(x any) {
-	// Retrieve the underlying concrete value from an interface variable
 	*h = append(*h, x.(ChildTuple))
 }
 
@@ -73,14 +77,18 @@ func filterChildren(h *TupleHeap) []string {
 	for i := 0; h.Len() > 0; i++ {
 		out[i] = heap.Pop(h).(ChildTuple).Path
 	}
-	// Reverse order largest -> smallest.
+
+	// Ensure file is displayed in reverse size order.
 	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
 		out[i], out[j] = out[j], out[i]
 	}
 	return out
 }
 
-// DFS bottom-up approach to compute the directory size and its topk largest subdirectories.
+// Recursive bottom-up approach to compute each directory size
+// and its topK largest subdirectories
+
+// Need to avoid symbolic and hard links for double counting.
 func scanDir(
 	parentPath string,
 	folderMap map[string]*DirNode,
@@ -93,12 +101,14 @@ func scanDir(
 
 	entries, err := os.ReadDir(parentPath)
 	if err != nil {
-		if errors.Is(err, os.ErrPermission) || errors.Is(err, fs.ErrNotExist) {
+		if errors.Is(err, os.ErrPermission) {
 			stats.Skipped = append(stats.Skipped, parentPath)
-			fmt.Println("Skipped permission denied:", parentPath)
-			return 0, nil
+			return 0, fmt.Errorf("Skipped permission denied for the path %q:  %w", parentPath, err)
+		} else if errors.Is(err, fs.ErrNotExist) {
+			stats.Skipped = append(stats.Skipped, parentPath)
+			return 0, fmt.Errorf("Skipped non-existent directory for the path %q:  %w", parentPath, err)
 		}
-		return 0, err
+		return 0, fmt.Errorf("Unexpected error for the path %q:  %w", parentPath, err)
 	}
 	for _, entry := range entries {
 		childPath := filepath.Join(parentPath, entry.Name())
@@ -109,6 +119,7 @@ func scanDir(
 				limit,
 				stats,
 			)
+			// Avoid unnecessary wrapping from the recursive call.
 			if err != nil {
 				return 0, err
 			}
@@ -123,7 +134,7 @@ func scanDir(
 				if errors.Is(err, os.ErrPermission) {
 					continue
 				}
-				return 0, err
+				return 0, fmt.Errorf("Unexpected error when opening a file %q: %w", info, err)
 			}
 			totalSize += info.Size()
 		}
@@ -133,25 +144,21 @@ func scanDir(
 		Size:         totalSize,
 		TopKChildren: filterChildren(h),
 	}
-	fmt.Printf("Scanned %s: %s\n", filepath.Base(parentPath), sizeify(totalSize))
+
+	fmt.Printf("Scanned %s: %s\n", filepath.Base(parentPath), sizeify(ByteSize(totalSize)))
 	return totalSize, nil
 }
 
 func start_scanning(absRoot string, limit int) (map[string]*DirNode, error) {
 
 	if _, err := os.Stat(absRoot); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			fmt.Fprintln(os.Stderr, "root does not exist: ", absRoot)
-			return nil, err
-		}
-		fmt.Fprintln(os.Stderr, "cannot access root: ", err)
-		return nil, err
+		return nil, fmt.Errorf("Cannot access root %q: %w", absRoot, err)
 	}
 
 	folderMap := make(map[string]*DirNode)
 	stats := &ScanStats{}
 	if _, err := scanDir(absRoot, folderMap, limit, stats); err != nil {
-		fmt.Fprintln(os.Stderr, "scan failed:", err)
+		// Return the wrapped error
 		return nil, err
 	}
 	if len(stats.Skipped) > 0 {
