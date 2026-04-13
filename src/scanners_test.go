@@ -3,12 +3,41 @@ package main
 import (
 	"container/heap"
 	"errors"
+	"fmt"
 	"io/fs"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"testing"
 	"testing/fstest"
 )
+
+// assert fails the test if the condition is false.
+func assert(tb testing.TB, condition bool, msg string, v ...interface{}) {
+	if !condition {
+		_, file, line, _ := runtime.Caller(1)
+		fmt.Printf("\033[31m%s:%d: "+msg+"\033[39m\n\n", append([]interface{}{filepath.Base(file), line}, v...)...)
+		tb.FailNow()
+	}
+}
+
+// ok fails the test if an err is not nil.
+func ok(tb testing.TB, err error) {
+	if err != nil {
+		_, file, line, _ := runtime.Caller(1)
+		fmt.Printf("\033[31m%s:%d: unexpected error: %s\033[39m\n\n", filepath.Base(file), line, err.Error())
+		tb.FailNow()
+	}
+}
+
+// equals fails the test if exp is not equal to act.
+func equals(tb testing.TB, exp, act interface{}) {
+	if !reflect.DeepEqual(exp, act) {
+		_, file, line, _ := runtime.Caller(1)
+		fmt.Printf("\033[31m%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\033[39m\n\n", filepath.Base(file), line, exp, act)
+		tb.FailNow()
+	}
+}
 
 type denyReadDirFS struct {
 	fsys fs.FS
@@ -41,9 +70,7 @@ func TestFilterChildren(t *testing.T) {
 	got := filterChildren(h)
 	want := []string{"b", "c", "a"}
 
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("filterChildren()=%v, want %v", got, want)
-	}
+	equals(t, want, got)
 }
 
 func TestScanDir_BasicCountsAndTopK(t *testing.T) {
@@ -59,30 +86,18 @@ func TestScanDir_BasicCountsAndTopK(t *testing.T) {
 	stats := &ScanStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 1, stats)
-	if err != nil {
-		t.Fatalf("scanDir error: %v", err)
-	}
-	if total != 351 {
-		t.Fatalf("total=%d, want 351", total)
-	}
+
+	ok(t, err)
+	equals(t, int64(351), total)
 
 	root := folderMap["."]
-	if root == nil {
-		t.Fatalf("missing node for '.'")
-	}
-	if root.Size != 351 {
-		t.Fatalf("root.Size=%d, want 351", root.Size)
-	}
-	if len(root.TopKChildren) != 1 || root.TopKChildren[0] != "a" {
-		t.Fatalf("root.TopKChildren=%v, want [a]", root.TopKChildren)
-	}
-
-	if folderMap["a"] == nil || folderMap["a"].Size != 200 {
-		t.Fatalf("node 'a' missing or wrong size: %#v", folderMap["a"])
-	}
-	if folderMap["b"] == nil || folderMap["b"].Size != 51 {
-		t.Fatalf("node 'b' missing or wrong size: %#v", folderMap["b"])
-	}
+	assert(t, root != nil, "Missing node for '.'")
+	equals(t, int64(351), root.Size)
+	equals(t, []string{"a"}, root.TopKChildren)
+	assert(t, folderMap["a"] != nil, "Node 'a' is missing.")
+	equals(t, int64(200), folderMap["a"].Size)
+	assert(t, folderMap["b"] != nil, "Node 'b' is missing.")
+	equals(t, int64(51), folderMap["b"].Size)
 }
 
 func TestScanDir_SymlinkSkipped(t *testing.T) {
@@ -95,12 +110,8 @@ func TestScanDir_SymlinkSkipped(t *testing.T) {
 	stats := &ScanStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 10, stats)
-	if err != nil {
-		t.Fatalf("scanDir error: %v", err)
-	}
-	if total != 10 {
-		t.Fatalf("total=%d, want 10 (symlink should be skipped)", total)
-	}
+	ok(t, err)
+	equals(t, int64(10), total)
 }
 
 func TestScanDir_PermissionDenied(t *testing.T) {
@@ -121,6 +132,7 @@ func TestScanDir_PermissionDenied(t *testing.T) {
 	stats := &ScanStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 10, stats)
+
 	if err != nil {
 		t.Fatalf("scanDir error: %v", err)
 	}
@@ -135,7 +147,6 @@ func TestScanDir_PermissionDenied(t *testing.T) {
 func TestScanDir_NonExistentChildIsSkipped(t *testing.T) {
 	base := fstest.MapFS{
 		"keep/file": {Data: make([]byte, 7)},
-		// NOTE: no "gone/..." keys => directory effectively doesn't exist.
 	}
 	fsys := denyReadDirFS{
 		fsys: base,
@@ -152,15 +163,10 @@ func TestScanDir_NonExistentChildIsSkipped(t *testing.T) {
 	stats := &ScanStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 10, stats)
-	if err != nil {
-		t.Fatalf("scanDir error: %v", err)
-	}
-	if total != 7 {
-		t.Fatalf("total=%d, want 7 (gone should be skipped)", total)
-	}
-	if len(stats.Skipped) != 1 || filepath.Clean(stats.Skipped[0]) != "gone" {
-		t.Fatalf("stats.Skipped=%v, want [gone]", stats.Skipped)
-	}
+	ok(t, err)
+	equals(t, int64(7), total)
+	equals(t, 1, len(stats.Skipped))
+	equals(t, "gone", filepath.Clean(stats.Skipped[0]))
 }
 
 func TestStartScanning_WithMapFS(t *testing.T) {
@@ -172,16 +178,9 @@ func TestStartScanning_WithMapFS(t *testing.T) {
 	// IMPORTANT: for fs.FS (including fstest.MapFS and os.DirFS),
 	// the "root" path inside the FS is typically ".".
 	folderMap, err := startScanning(fsys, ".", 10)
-	if err != nil {
-		t.Fatalf("startScanning error: %v", err)
-	}
-
-	if folderMap["."] == nil {
-		t.Fatalf("expected folderMap to contain '.' root node")
-	}
-	if folderMap["."].Size != 7 {
-		t.Fatalf("root size=%d, want 7", folderMap["."].Size)
-	}
+	ok(t, err)
+	assert(t, folderMap["."] != nil, "expected folderMap to contain '.' root node")
+	assert(t, folderMap["."].Size == int64(7), "root size=%d, want 7", folderMap["."].Size)
 }
 
 func TestScanDir_ErrorIsWrapped(t *testing.T) {
@@ -197,10 +196,6 @@ func TestScanDir_ErrorIsWrapped(t *testing.T) {
 	stats := &ScanStats{}
 
 	_, err := scanDir(fsys, ".", folderMap, 10, stats)
-	if err == nil {
-		t.Fatalf("expected error")
-	}
-	if !errors.Is(err, fs.ErrPermission) {
-		t.Fatalf("expected errors.Is(err, fs.ErrPermission)=true, got %v", err)
-	}
+	assert(t, err != nil, "expected a permission error to occur")
+	assert(t, errors.Is(err, fs.ErrPermission), "expected errors.Is(err, fs.ErrPermission)=true, got %v", err)
 }
