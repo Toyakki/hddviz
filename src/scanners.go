@@ -70,6 +70,7 @@ func (h *TupleHeap) Pop() any {
 	return x
 }
 
+// List topK largest subdirectories in reverse-size order.
 func filterChildren(h *TupleHeap) []string {
 	n := h.Len()
 	out := make([]string, n)
@@ -77,7 +78,6 @@ func filterChildren(h *TupleHeap) []string {
 		out[i] = heap.Pop(h).(ChildTuple).Path
 	}
 
-	// Ensure file is displayed in reverse size order.
 	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
 		out[i], out[j] = out[j], out[i]
 	}
@@ -86,8 +86,6 @@ func filterChildren(h *TupleHeap) []string {
 
 // Recursive bottom-up approach to compute each directory size
 // and its topK largest subdirectories
-
-// Need to avoid symbolic and hard links for double counting.
 func scanDir(
 	fileSystem fs.FS,
 	parentPath string,
@@ -159,6 +157,7 @@ func scanDir(
 	return totalSize, nil
 }
 
+// Start filescanning. limit is the number of largest subdirs to show.
 func startScanning(fileSystem fs.FS, limit int) (map[string]*DirNode, error) {
 	folderMap := make(map[string]*DirNode)
 	stats := &ScanStats{}
