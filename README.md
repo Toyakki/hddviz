@@ -1,5 +1,8 @@
 # hddviz CLI
 
+## Demo video
+Coming soon!
+
 ## Motivation
 Unlike Linux CLI, macOS and windows do not have a convinient command line tool to visualize hard disk usage. This tool aims to visualize hard disk usage from your command line everywhere, without the need to install a GUI tool. 
 
