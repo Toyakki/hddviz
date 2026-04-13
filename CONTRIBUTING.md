@@ -3,6 +3,9 @@
 ## Non-technical guidelines
 By participating in this project, you agree to abide by the [code of conduct](https://github.com/goreleaser/.github/blob/main/CODE_OF_CONDUCT.md). 
 
+## Personal note
+This is my first golang pet project, and I am still learning this language and how to deploy it properly. Any constructive criticism and suggestions are very welcome.
+
 ## Setup
 * Go 1.25+
 

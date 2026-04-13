@@ -25,9 +25,8 @@ Currently, it is only tested on macOS, but I plan to add support for Windows in 
 - Nice to learn golang
 - Motivate me to buy a Linux machine so i don't have to maintain this and just run ncdu.
 
-## How to use this cli.
-There are two ways of using this CLI tool. Run locally or install it using homebrew.
-Run the following command to install it using homebrew.
+## How to use this cli tool?
+There are two ways of using this CLI tool. Run locally or install it using homebrew. Run the following commands to install it via homebrew.
 ```bash
 brew tap Toyakki/hddviz
 brew install --cask hddviz
@@ -43,14 +42,10 @@ ls -l "$(brew --prefix)/bin/hddviz"
 ```
 If the symlink is not pointing back into the staged cask under $(brew --caskroom), please try to resolve the symlink issue.
 
-
-
-Reference: https://go.dev/doc/tutorial/compile-install
-
-## TODOs
+## TODOs for me and any devs
 ### Public deployment
-- [] Write a doc for easier cli command installation and usage. The one that uses go install . 
-- [] Review .goreleaser.yml for brew public release.
+- [ ] Write a doc for easier cli command installation and usage. The one that uses go install . 
+- [ ] Review .goreleaser.yml for brew public release.
 
 
 ### Development:
