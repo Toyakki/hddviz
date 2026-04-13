@@ -35,20 +35,25 @@ Documentation coming soon!
 ### Development:
 
 #### Code quality:
-- Better error handling and logging
-  - log vs fprinln vs fmt.errorf vs errors package
-  - Good guide: https://www.jetbrains.com/guide/go/tutorials/handle_errors_in_go/error_technique/
-- Add some unit tests
+- [x] Better error handling and logging
+  - [x] log vs fprinln vs fmt.errorf vs errors
+  
+- [] Add some unit tests for serial scanning.
 
 #### Features:
-- A fancier welcome screen.
-- Tab completion for path.
-- Add goroutine for concurrent scanning of directories to improve performance. Both blocking and non-blocking versions.
-  - Three-level system:
-    - Non-blocking
-    - Blocking
-    - Serial
+Scanning features:
+- [ ] Create goroutines for concurrent scanning of directories to improve performance.
+- [ ] 
+  - [x] Store the prototyped version in .idea folder 
+  - [ ] Write unit tests
+  - [ ] Add a command line flag to enable/disable concurrent scanning.
+  - [ ] Add a command line flag to set the maximum number of goroutines to use for scanning.
+  - [ ] Add a fallback mechanism to sequential scanning if the number of goroutines exceeds a certain threshold to prevent overwhelming the system.
 
+REPL features:
+- [ ] A fancier welcome screen.
+- [ ] Tab completion for path.
+- [ ] Add a bar graph viz of disk usage for each directory.
 
 ## Future extensions
 - File-system based scanning system to improve performance. For example, WizTree uses the Master File Table (MFT) to quickly scan NTFS file systems, which can be significantly faster than traditional scanning methods.

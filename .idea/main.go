@@ -182,6 +182,6 @@ func start_scanning_concurrent() {
 	}
 }
 
-func main() {
-	start_scanning_concurrent()
-}
+// func main() {
+// 	start_scanning_concurrent()
+// }
