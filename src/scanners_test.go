@@ -177,7 +177,7 @@ func TestStartScanning_WithMapFS(t *testing.T) {
 
 	// IMPORTANT: for fs.FS (including fstest.MapFS and os.DirFS),
 	// the "root" path inside the FS is typically ".".
-	folderMap, err := startScanning(fsys, ".", 10)
+	folderMap, err := startScanning(fsys, 10)
 	ok(t, err)
 	assert(t, folderMap["."] != nil, "expected folderMap to contain '.' root node")
 	assert(t, folderMap["."].Size == int64(7), "root size=%d, want 7", folderMap["."].Size)

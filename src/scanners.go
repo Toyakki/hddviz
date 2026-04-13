@@ -159,13 +159,14 @@ func scanDir(
 	return totalSize, nil
 }
 
-func startScanning(fileSystem fs.FS, absRoot string, limit int) (map[string]*DirNode, error) {
+func startScanning(fileSystem fs.FS, limit int) (map[string]*DirNode, error) {
 	folderMap := make(map[string]*DirNode)
 	stats := &ScanStats{}
-	if _, err := scanDir(fileSystem, absRoot, folderMap, limit, stats); err != nil {
+	if _, err := scanDir(fileSystem, ".", folderMap, limit, stats); err != nil {
 		// Return the wrapped error
 		return nil, err
 	}
+
 	if len(stats.Skipped) > 0 {
 		fmt.Printf("\nSkipped %d directories/files due to access issues. Consider running 'sudo hddviz' to bypass the permission issue.\n", len(stats.Skipped))
 	}

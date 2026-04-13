@@ -31,11 +31,11 @@ func main() {
 	}
 	fsys := os.DirFS(absRoot)
 
-	folderMap, err := startScanning(fsys, absRoot, *limit)
+	folderMap, err := startScanning(fsys, *limit)
 	if err != nil {
 		cause := errors.Unwrap(err)
 		fmt.Fprintln(os.Stderr, "Scanning failed: ", cause)
 		os.Exit(1)
 	}
-	runREPL(folderMap, absRoot)
+	runREPL(folderMap, ".")
 }
