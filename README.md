@@ -4,7 +4,7 @@
 Coming soon!
 
 ## Motivation
-Unlike Linux CLI, macOS and windows do not have a convinient command line tool to visualize hard disk usage. This tool aims to visualize hard disk usage from your command line everywhere, without the need to install a GUI tool. 
+Unlike Linux CLI, macOS does not have a convenient command line tool to visualize hard disk usage. This tool aims to visualize hard disk usage from your command line everywhere, without the need to install a GUI tool. 
 
 hddviz is a file-system agnostic CLI tool that provides a simple test-based listing of disk usage, making it easier for users to identify large files and directories. It uses a combination of heap and recursive algorithm to efficiently scan and visualize disk usage.
 Currently, it is only tested on macOS, but I plan to add support for Windows in the future, if I have time.
@@ -26,12 +26,32 @@ Currently, it is only tested on macOS, but I plan to add support for Windows in 
 - Motivate me to buy a Linux machine so i don't have to maintain this and just run ncdu.
 
 ## How to use this cli.
-Coming soon!
+There are two ways of using this CLI tool. Run locally or install it using homebrew.
+Run the following command to install it using homebrew.
+```bash
+brew tap Toyakki/hddviz
+brew install --cask hddviz
+```
+After installation, run:
+```bash
+hddviz
+```
+If hddviz is not run, verify where it resolves from with:
+```bash
+which hddviz
+ls -l "$(brew --prefix)/bin/hddviz"
+```
+If the symlink is not pointing back into the staged cask under $(brew --caskroom), please try to resolve the symlink issue.
+
+
+
+Reference: https://go.dev/doc/tutorial/compile-install
 
 ## TODOs
 ### Public deployment
-- Add a PR config, protect main branch. 
-- Support for Windows? Currently only tested on macOS.
+- [] Write a doc for easier cli command installation and usage. The one that uses go install . 
+- [] Review .goreleaser.yml for brew public release.
+
 
 ### Development:
 
