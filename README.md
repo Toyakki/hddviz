@@ -37,8 +37,12 @@ hddviz
 ```
 If hddviz is not run, verify where it resolves from with:
 ```bash
-which hddviz
 ls -l "$(brew --prefix)/bin/hddviz"
+```
+
+It should look like this:
+```bash
+lrwxr-xr-x  1 user  admin  34 Jun 17 12:00 <PATH TO LOCAL BIN>/hddviz -> <PATH TO LOCAL BIN>/Caskroom/hddviz/0.1.x/hddviz
 ```
 If the symlink is not pointing back into the staged cask under $(brew --caskroom), please try to resolve the symlink issue.
 
