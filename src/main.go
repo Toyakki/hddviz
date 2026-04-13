@@ -21,11 +21,17 @@ func main() {
 	flag.Parse()
 	absRoot, err := filepath.Abs(*root)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "invalid abs path: ", err)
+		fmt.Fprintln(os.Stderr, "Failed to normalize the given path: ", err)
 		os.Exit(1)
 	}
 
-	folderMap, err := start_scanning(absRoot, *limit)
+	if _, err := os.Stat(absRoot); err != nil {
+		fmt.Fprintln(os.Stderr, "Cannot find the path: ", err)
+		os.Exit(1)
+	}
+	fsys := os.DirFS(absRoot)
+
+	folderMap, err := startScanning(fsys, absRoot, *limit)
 	if err != nil {
 		cause := errors.Unwrap(err)
 		fmt.Fprintln(os.Stderr, "Scanning failed: ", cause)

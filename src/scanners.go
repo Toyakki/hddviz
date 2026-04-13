@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"os"
 	"path/filepath"
 )
 
@@ -90,6 +89,7 @@ func filterChildren(h *TupleHeap) []string {
 
 // Need to avoid symbolic and hard links for double counting.
 func scanDir(
+	fileSystem fs.FS,
 	parentPath string,
 	folderMap map[string]*DirNode,
 	limit int,
@@ -99,7 +99,7 @@ func scanDir(
 	h := &TupleHeap{}
 	heap.Init(h)
 
-	entries, err := os.ReadDir(parentPath)
+	entries, err := fs.ReadDir(fileSystem, parentPath)
 	if err != nil {
 		if errors.Is(err, fs.ErrPermission) {
 			stats.Skipped = append(stats.Skipped, parentPath)
@@ -112,12 +112,13 @@ func scanDir(
 	}
 	for _, entry := range entries {
 		// Avoid symlink just in case
-		if entry.Type()&os.ModeSymlink != 0 {
+		if entry.Type()&fs.ModeSymlink != 0 {
 			continue
 		}
 		childPath := filepath.Join(parentPath, entry.Name())
 		if entry.IsDir() {
 			childSize, err := scanDir(
+				fileSystem,
 				childPath,
 				folderMap,
 				limit,
@@ -140,7 +141,7 @@ func scanDir(
 		} else {
 			info, err := entry.Info()
 			if err != nil {
-				if errors.Is(err, os.ErrPermission) {
+				if errors.Is(err, fs.ErrPermission) {
 					continue
 				}
 				return 0, fmt.Errorf("unexpected error when opening a file %q: %w", info, err)
@@ -158,15 +159,10 @@ func scanDir(
 	return totalSize, nil
 }
 
-func start_scanning(absRoot string, limit int) (map[string]*DirNode, error) {
-
-	if _, err := os.Stat(absRoot); err != nil {
-		return nil, fmt.Errorf("cannot access root %q: %w", absRoot, err)
-	}
-	// absRoot = "/Users/Tohya/Library/Application Support/firebase-heartbeat"
+func startScanning(fileSystem fs.FS, absRoot string, limit int) (map[string]*DirNode, error) {
 	folderMap := make(map[string]*DirNode)
 	stats := &ScanStats{}
-	if _, err := scanDir(absRoot, folderMap, limit, stats); err != nil {
+	if _, err := scanDir(fileSystem, absRoot, folderMap, limit, stats); err != nil {
 		// Return the wrapped error
 		return nil, err
 	}
