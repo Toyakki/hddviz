@@ -29,7 +29,6 @@ Currently, it is only tested on macOS, but I plan to add support for Windows in 
 Brew instalation instruction coming soon!
 You can download the binary from the releases page and run it from your terminal. The CLI provides a REPL interface where you can enter commands to navigate directories and visualize folder-based disk usage.
 
-
 ## TODOs for me and any devs
 ### Public deployment
 - [ ] Write a doc for easier cli command installation and usage. The one that uses go install . 
