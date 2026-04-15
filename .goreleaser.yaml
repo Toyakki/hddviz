@@ -1,10 +1,7 @@
-# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# .goreleaser.yaml
 version: 2
-project_name: hddviz
 
-before:
-  hooks:
-    - go mod tidy
+project_name: hddviz
 
 builds:
   - id: hddviz
@@ -14,14 +11,10 @@ builds:
     env:
       - CGO_ENABLED=0
     flags:
-      - -mod=vendor
       - -trimpath
-    ldflags:
-      - -s -w
     goos:
       - darwin
     goarch:
-      - "386"
       - amd64
       - arm64
 
@@ -29,22 +22,25 @@ universal_binaries:
   - replace: true
 
 checksum:
-  name_template: "checksums.txt"
+  name_template: checksums.txt
 
 homebrew_casks:
   - name: hddviz
     repository:
       owner: Toyakki
       name: homebrew-hddviz
-    directory: Formula
+      branch: main
+    directory: Casks
+    commit_author:
+      name: hddviz-bot
+      email: bot@users.noreply.github.com
+
     homepage: "https://github.com/Toyakki/hddviz"
     description: "CLI tool to simplify HDD usage visualization"
     license: "GPL-3.0-only"
+
     binaries:
       - hddviz
-    completions:
-      bash: completions/hddviz.bash
-      zsh: completions/hddviz.zsh
-      fish: completions/hddviz.fish
+
     url:
-      verified: "github.com/Toyakki/hddviz/releases/download"
+      verified: "github.com/Toyakki/hddviz/releases/download/"

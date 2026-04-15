@@ -2,39 +2,78 @@ name: release
 
 on:
   push:
-    branches: ["main"]
+    branches: 
+      - "main"
     paths:
       - "VERSION"
-    tags:
-      - 'v*'
   # manual trigger for releases
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to release (e.g., v1.0.0)"
-        required: true
-        type: string
-        default: "0.1.0"
+    # inputs:
+    #   version:
+    #     description: "Version to release (e.g., v1.0.0)"
+    #     required: true
+    #     type: string
+    #     default: "0.1.0"
 
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v6
+          token: ${{ secrets.HDDVIZ_PAT }}
+      - name: Set up Go
+        uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: src/go.mod
+          cache-dependency-path: src/go.sum
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION )" 
+          TAG="v${VERSION}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - name: Ensure tag exists
+        shell: bash
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git fetch --tags origin
+          HEAD_SHA="$(git rev-parse HEAD)"
+
+          if git show-ref --tags --verify --quiet "refs/tags/$TAG"; then
+            TAG_SHA="$(git rev-list -n 1 "$TAG")"
+            if [ "$TAG_SHA" != "$HEAD_SHA" ]; then
+              echo "ERROR: Tag $TAG already exists but points to $TAG_SHA, not HEAD $HEAD_SHA"
+              exit 1
+            fi
+            echo "Tag $TAG already exists and matches HEAD"
+            exit 0
+          fi
+
+          git config user.name "hddviz-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "refs/tags/$TAG"
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
         with:
-          # Installs and runs a GoReleaser v2.x release
           version: "~> v2"
-          # Remove the previous dist/ folder before new release.
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.HDDVIZ_PAT }}
+          GORELEASER_CURRENT_TAG: ${{ steps.version.outputs.tag }}
