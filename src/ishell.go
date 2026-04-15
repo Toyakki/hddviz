@@ -26,6 +26,22 @@ func printNode(path string, folderMap map[string]*DirNode) {
 	}
 }
 
+func printWelcome() {
+	fmt.Println(`
+      ___           ___           ___           ___                       ___     
+     /\__\         /\  \         /\  \         /\__\          ___        /\  \    
+    /:/  /        /::\  \       /::\  \       /:/  /         /\  \       \:\  \   
+   /:/__/        /:/\:\  \     /:/\:\  \     /:/  /          \:\  \       \:\  \  
+  /::\  \ ___   /:/  \:\__\   /:/  \:\__\   /:/__/  ___      /::\__\       \:\  \ 
+ /:/\:\  /\__\ /:/__/ \:|__| /:/__/ \:|__|  |:|  | /\__\  __/:/\/__/ _______\:\__\
+ \/__\:\/:/  / \:\  \ /:/  / \:\  \ /:/  /  |:|  |/:/  / /\/:/  /    \::::::::/__/
+      \::/  /   \:\  /:/  /   \:\  /:/  /   |:|__/:/  /  \::/__/      \:\~~\~~    
+      /:/  /     \:\/:/  /     \:\/:/  /     \::::/__/    \:\__\       \:\  \     
+     /:/  /       \::/__/       \::/__/       ~~~~         \/__/        \:\__\    
+     \/__/         ~~            ~~                                      \/__/  
+	`)
+}
+
 func printHelp() {
 	fmt.Println("Commands:")
 	fmt.Println("help: Show this help")
@@ -40,6 +56,7 @@ func runREPL(folderMap map[string]*DirNode, cwd string) {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	fmt.Println()
+	printWelcome()
 	fmt.Println("Entering interactive mode. Type 'help' for commands.")
 
 	for {
