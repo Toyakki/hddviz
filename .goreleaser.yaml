@@ -30,7 +30,7 @@ homebrew_casks:
       owner: Toyakki
       name: homebrew-hddviz
       branch: main
-      token: "{{ .ENV.HDDVIZ_PAT }}"
+      token: "{{ .ENV.HOMEBREW_TAP_TOKEN }}"
     directory: Casks
     commit_author:
       name: hddviz-bot
