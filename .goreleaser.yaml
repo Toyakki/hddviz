@@ -2,6 +2,10 @@
 version: 2
 project_name: hddviz
 
+before:
+  hooks:
+    - go mod tidy
+
 builds:
   - id: hddviz
     dir: ./src
@@ -17,42 +21,30 @@ builds:
     goos:
       - darwin
     goarch:
+      - "386"
       - amd64
+      - arm64
 
 universal_binaries:
-  - id: hddviz
-    replace: true
-
-release:
-  prerelease: auto
+  - replace: true
 
 checksum:
-  name_template: "{{ .ProjectName }}_checksums.txt"
+  name_template: "checksums.txt"
 
 homebrew_casks:
   - name: hddviz
     repository:
       owner: Toyakki
-      name: hddviz
-      branch: main
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    commit_author:
-      name: Toyakki
-      email: lopko1001@gmail.com
-
+      name: homebrew-hddviz
+    directory: Formula
     homepage: "https://github.com/Toyakki/hddviz"
     description: "CLI tool to simplify HDD usage visualization"
     license: "GPL-3.0-only"
-
     binaries:
       - hddviz
-
+    completions:
+      bash: completions/hddviz.bash
+      zsh: completions/hddviz.zsh
+      fish: completions/hddviz.fish
     url:
-      verified: "github.com/Toyakki/hddviz/"
-
-    hooks:
-      post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/hddviz"]
-          end
+      verified: "github.com/Toyakki/hddviz/releases/download"
