@@ -1,4 +1,4 @@
-# .goreleaser.yaml
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 version: 2
 
 project_name: hddviz
@@ -30,11 +30,11 @@ homebrew_casks:
       owner: Toyakki
       name: homebrew-hddviz
       branch: main
-      token: "{{ .ENV.HOMEBREW_TAP_TOKEN }}"
-    directory: Casks
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+
     commit_author:
-      name: hddviz-bot
-      email: bot@users.noreply.github.com
+      name: github-actions[bot]
+      email: github-actions[bot]@users.noreply.github.com
 
     homepage: "https://github.com/Toyakki/hddviz"
     description: "CLI tool to simplify HDD usage visualization"
@@ -42,6 +42,3 @@ homebrew_casks:
 
     binaries:
       - hddviz
-
-    url:
-      verified: "github.com/Toyakki/hddviz/releases/download/"
