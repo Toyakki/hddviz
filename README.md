@@ -26,8 +26,30 @@ Currently, it is only tested on macOS, but I plan to add support for Windows in 
 - Motivate me to buy a Linux machine so i don't have to maintain this and just run ncdu.
 
 ## How to use this cli tool?
-Brew instalation instruction coming soon!
-You can download the binary from the releases page and run it from your terminal. The CLI provides a REPL interface where you can enter commands to navigate directories and visualize folder-based disk usage.
+There are two ways to use this CLI tool, local and brew.
+
+### Local
+1. Clone the repository
+2. Go to the src directory
+```bash
+cd src
+```
+3. Run `go install .` to install the CLI tool
+4. Run `hddviz` to start the CLI tool
+
+## brew install (experimental)
+Run the following commands
+```bash
+brew tap Toyakki/hddviz && brew install hddviz
+```
+
+If you have any issues with the above commands, try running:
+```bash
+brew untap Toyakki/hddviz
+brew update && brew tap Toyakki/hddviz && brew install hddviz
+```
+
+The CLI provides a REPL interface where you can enter commands to navigate directories and visualize folder-based disk usage.
 
 ## TODOs for me and any devs
 ### Public deployment
