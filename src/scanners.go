@@ -71,16 +71,13 @@ func (h *TupleHeap) Pop() any {
 }
 
 // List topK largest subdirectories in reverse-size order.
-func filterChildren(h *TupleHeap) []string {
+func showChildren(h *TupleHeap) []string {
 	n := h.Len()
 	out := make([]string, n)
-	for i := 0; h.Len() > 0; i++ {
+	for i := n - 1; i >= 0; i-- {
 		out[i] = heap.Pop(h).(ChildTuple).Path
 	}
 
-	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
-		out[i], out[j] = out[j], out[i]
-	}
 	return out
 }
 
@@ -132,6 +129,7 @@ func scanDir(
 				return 0, err
 			}
 			totalSize += childSize
+			// Use a classic maxHeap trick for minHeap
 			heap.Push(h, ChildTuple{Path: childPath, Size: childSize})
 			if h.Len() > limit {
 				heap.Pop(h)
@@ -150,7 +148,7 @@ func scanDir(
 	folderMap[parentPath] = &DirNode{
 		FolderName:   filepath.Base(parentPath),
 		Size:         totalSize,
-		TopKChildren: filterChildren(h),
+		TopKChildren: showChildren(h),
 	}
 
 	fmt.Printf("Scanned %s: %s\n", filepath.Base(parentPath), sizeify(ByteSize(totalSize)))
