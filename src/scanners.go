@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"time"
 )
 
 // Declaring data type is a peak coding practice
@@ -42,7 +43,9 @@ type DirNode struct {
 }
 
 type ScanStats struct {
-	Skipped []string
+	PermissionSkip []string
+	NoDirSkip      []string
+	FileInfoSkip   []string
 }
 
 type ChildTuple struct {
@@ -97,10 +100,10 @@ func scanDir(
 	entries, err := fs.ReadDir(fileSystem, parentPath)
 	if err != nil {
 		if errors.Is(err, fs.ErrPermission) {
-			stats.Skipped = append(stats.Skipped, parentPath)
+			stats.PermissionSkip = append(stats.PermissionSkip, parentPath)
 			return 0, fmt.Errorf("skipped permission denied for the path %q:  %w", parentPath, err)
 		} else if errors.Is(err, fs.ErrNotExist) {
-			stats.Skipped = append(stats.Skipped, parentPath)
+			stats.NoDirSkip = append(stats.NoDirSkip, parentPath)
 			return 0, fmt.Errorf("skipped non-existent directory for the path %q:  %w", parentPath, err)
 		}
 		return 0, fmt.Errorf("unexpected error for the path %q:  %w", parentPath, err)
@@ -137,9 +140,10 @@ func scanDir(
 		} else {
 			info, err := entry.Info()
 			if err != nil {
-				if errors.Is(err, fs.ErrPermission) {
+				if errors.Is(err, fs.ErrPermission) || errors.Is(err, fs.ErrNotExist) {
 					continue
 				}
+				stats.FileInfoSkip = append(stats.FileInfoSkip, childPath)
 				return 0, fmt.Errorf("unexpected error when opening a file %q: %w", info, err)
 			}
 			totalSize += info.Size()
@@ -159,15 +163,15 @@ func scanDir(
 func startScanning(fileSystem fs.FS, limit int) (map[string]*DirNode, error) {
 	folderMap := make(map[string]*DirNode)
 	stats := &ScanStats{}
+	start := time.Now()
 	if _, err := scanDir(fileSystem, ".", folderMap, limit, stats); err != nil {
 		// Return the wrapped error
+		time.Since(start)
 		return nil, err
 	}
-
-	if len(stats.Skipped) > 0 {
-		fmt.Printf("\nSkipped %d directories/files due to access issues. Consider running 'sudo hddviz' to bypass the permission issue.\n", len(stats.Skipped))
+	if len(stats.PermissionSkip)+len(stats.NoDirSkip) > 0 {
+		fmt.Printf("\nSkipped %d directories/files due to permission denied and %d directories/files due to non-existent files. Consider running 'sudo hddviz' to bypass the permission issue.\n", len(stats.PermissionSkip), len(stats.NoDirSkip))
 	}
-	fmt.Println("")
-	fmt.Println("Scanning completed!")
+	fmt.Printf("Scanning completed! Took %v to run. \n", time.Since(start))
 	return folderMap, nil
 }
