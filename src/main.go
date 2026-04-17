@@ -1,12 +1,25 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 )
+
+func printSkipSummary(stats *SkipStats) {
+	if stats == nil {
+		return
+	}
+	p := len(stats.PermissionSkip)
+	n := len(stats.NoDirSkip)
+	f := len(stats.FileInfoSkip)
+	if p+n+f == 0 {
+		return
+	}
+	fmt.Fprintf(os.Stderr, "\nSkipped %d path(s) (permission denied: %d, not found: %d, file info failed: %d).\n", p+n+f, p, n, f)
+	fmt.Fprintln(os.Stderr, "If you expected these to be scanned, re-run with appropriate permissions (sudo hddviz ) or choose a different -root.")
+}
 
 func main() {
 	home, err := os.UserHomeDir()
@@ -31,11 +44,19 @@ func main() {
 	}
 	fsys := os.DirFS(absRoot)
 
-	folderMap, err := startScanning(fsys, *limit)
+	folderMap, stats, err := startScanning(fsys, *limit)
 	if err != nil {
-		cause := errors.Unwrap(err)
-		fmt.Fprintln(os.Stderr, "Scanning failed: ", cause)
+		fmt.Fprintln(os.Stderr, "Scanning failed: ", err)
+		printSkipSummary(stats)
 		os.Exit(1)
 	}
+	printSkipSummary(stats)
+	// folderMap, errs := start_scanning_concurrent(fsys, *limit)
+	// if len(errs) != 0 {
+	// 	for err := range errs {
+	// 		fmt.Fprintln(os.Stderr, "Scannig failed:", err)
+	// 	}
+	// 	os.Exit(1)
+	// }
 	runREPL(folderMap, ".")
 }

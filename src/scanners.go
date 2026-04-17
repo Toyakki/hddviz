@@ -42,7 +42,9 @@ type DirNode struct {
 	TopKChildren []string
 }
 
-type ScanStats struct {
+var ErrSkipped = errors.New("skipped")
+
+type SkipStats struct {
 	PermissionSkip []string
 	NoDirSkip      []string
 	FileInfoSkip   []string
@@ -91,7 +93,7 @@ func scanDir(
 	parentPath string,
 	folderMap map[string]*DirNode,
 	limit int,
-	stats *ScanStats,
+	stats *SkipStats,
 ) (int64, error) {
 	var totalSize int64
 	h := &TupleHeap{}
@@ -101,12 +103,12 @@ func scanDir(
 	if err != nil {
 		if errors.Is(err, fs.ErrPermission) {
 			stats.PermissionSkip = append(stats.PermissionSkip, parentPath)
-			return 0, fmt.Errorf("skipped permission denied for the path %q:  %w", parentPath, err)
+			return 0, errors.Join(ErrSkipped, err)
 		} else if errors.Is(err, fs.ErrNotExist) {
 			stats.NoDirSkip = append(stats.NoDirSkip, parentPath)
-			return 0, fmt.Errorf("skipped non-existent directory for the path %q:  %w", parentPath, err)
+			return 0, errors.Join(ErrSkipped, err)
 		}
-		return 0, fmt.Errorf("unexpected error for the path %q:  %w", parentPath, err)
+		return 0, fmt.Errorf("readdir %q: %w", parentPath, err)
 	}
 	for _, entry := range entries {
 		// Avoid symlink just in case
@@ -124,11 +126,10 @@ func scanDir(
 			)
 
 			if err != nil {
-				var pathError *fs.PathError
-				if errors.As(err, &pathError) {
+				// Skip expected errors
+				if errors.Is(err, ErrSkipped) {
 					continue
 				}
-				// Avoid unnecessary wrapping from the recursive call.
 				return 0, err
 			}
 			totalSize += childSize
@@ -140,11 +141,16 @@ func scanDir(
 		} else {
 			info, err := entry.Info()
 			if err != nil {
-				if errors.Is(err, fs.ErrPermission) || errors.Is(err, fs.ErrNotExist) {
+				if errors.Is(err, fs.ErrPermission) {
+					stats.PermissionSkip = append(stats.PermissionSkip, childPath)
+					continue
+				}
+				if errors.Is(err, fs.ErrNotExist) {
+					stats.NoDirSkip = append(stats.NoDirSkip, childPath)
 					continue
 				}
 				stats.FileInfoSkip = append(stats.FileInfoSkip, childPath)
-				return 0, fmt.Errorf("unexpected error when opening a file %q: %w", info, err)
+				return 0, fmt.Errorf("stat %q: %w", info, err)
 			}
 			totalSize += info.Size()
 		}
@@ -160,18 +166,14 @@ func scanDir(
 }
 
 // Start filescanning. limit is the number of largest subdirs to show.
-func startScanning(fileSystem fs.FS, limit int) (map[string]*DirNode, error) {
+func startScanning(fileSystem fs.FS, limit int) (map[string]*DirNode, *SkipStats, error) {
 	folderMap := make(map[string]*DirNode)
-	stats := &ScanStats{}
+	stats := &SkipStats{}
 	start := time.Now()
 	if _, err := scanDir(fileSystem, ".", folderMap, limit, stats); err != nil {
-		// Return the wrapped error
-		time.Since(start)
-		return nil, err
-	}
-	if len(stats.PermissionSkip)+len(stats.NoDirSkip) > 0 {
-		fmt.Printf("\nSkipped %d directories/files due to permission denied and %d directories/files due to non-existent files. Consider running 'sudo hddviz' to bypass the permission issue.\n", len(stats.PermissionSkip), len(stats.NoDirSkip))
+		// Return the partial results and stats.
+		return folderMap, stats, err
 	}
 	fmt.Printf("Scanning completed! Took %v to run. \n", time.Since(start))
-	return folderMap, nil
+	return folderMap, stats, nil
 }
