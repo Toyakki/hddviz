@@ -59,7 +59,7 @@ func (d denyReadDirFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	return fs.ReadDir(d.fsys, name)
 }
 
-func TestFilterChildren(t *testing.T) {
+func TestShowChildren(t *testing.T) {
 	h := &TupleHeap{}
 	heap.Init(h)
 
@@ -67,7 +67,7 @@ func TestFilterChildren(t *testing.T) {
 	heap.Push(h, ChildTuple{Path: "b", Size: 3})
 	heap.Push(h, ChildTuple{Path: "c", Size: 2})
 
-	got := filterChildren(h)
+	got := showChildren(h)
 	want := []string{"b", "c", "a"}
 
 	equals(t, want, got)
@@ -83,7 +83,7 @@ func TestScanDir_BasicCountsAndTopK(t *testing.T) {
 	}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &ScanStats{}
+	stats := &SkipStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 1, stats)
 
@@ -107,7 +107,7 @@ func TestScanDir_SymlinkSkipped(t *testing.T) {
 	}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &ScanStats{}
+	stats := &SkipStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 10, stats)
 	ok(t, err)
@@ -129,7 +129,7 @@ func TestScanDir_PermissionDenied(t *testing.T) {
 	}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &ScanStats{}
+	stats := &SkipStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 10, stats)
 
@@ -139,8 +139,8 @@ func TestScanDir_PermissionDenied(t *testing.T) {
 	if total != 5 {
 		t.Fatalf("total=%d, want 5 (private should be skipped)", total)
 	}
-	if len(stats.Skipped) != 2 || filepath.Clean(stats.Skipped[0]) != "private" {
-		t.Fatalf("stats.Skipped=%v, want [private]", stats.Skipped)
+	if len(stats.PermissionSkip) != 2 || filepath.Clean(stats.PermissionSkip[0]) != "private" {
+		t.Fatalf("stats.Skipped=%v, want [private]", stats.PermissionSkip)
 	}
 }
 
@@ -160,13 +160,13 @@ func TestScanDir_NonExistentChildIsSkipped(t *testing.T) {
 	base["gone/x"] = &fstest.MapFile{Data: make([]byte, 1)}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &ScanStats{}
+	stats := &SkipStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 10, stats)
 	ok(t, err)
 	equals(t, int64(7), total)
-	equals(t, 1, len(stats.Skipped))
-	equals(t, "gone", filepath.Clean(stats.Skipped[0]))
+	equals(t, 1, len(stats.NoDirSkip))
+	equals(t, "gone", filepath.Clean(stats.NoDirSkip[0]))
 }
 
 func TestStartScanning_WithMapFS(t *testing.T) {
@@ -177,7 +177,7 @@ func TestStartScanning_WithMapFS(t *testing.T) {
 
 	// IMPORTANT: for fs.FS (including fstest.MapFS and os.DirFS),
 	// the "root" path inside the FS is typically ".".
-	folderMap, err := startScanning(fsys, 10)
+	folderMap, _, err := startScanning(fsys, 10)
 	ok(t, err)
 	assert(t, folderMap["."] != nil, "expected folderMap to contain '.' root node")
 	assert(t, folderMap["."].Size == int64(7), "root size=%d, want 7", folderMap["."].Size)
@@ -193,7 +193,7 @@ func TestScanDir_ErrorIsWrapped(t *testing.T) {
 	}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &ScanStats{}
+	stats := &SkipStats{}
 
 	_, err := scanDir(fsys, ".", folderMap, 10, stats)
 	assert(t, err != nil, "expected a permission error to occur")
