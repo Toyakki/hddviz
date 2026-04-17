@@ -1,7 +1,7 @@
 # hddviz CLI
 
 ## Demo video
-Coming soon!
+https://github.com/user-attachments/assets/d022c779-ca6d-41db-8f7b-a9597c6529ef
 
 ## Motivation
 Unlike Linux CLI, macOS does not have a convenient command line tool to visualize hard disk usage. This tool aims to visualize hard disk usage from your command line everywhere. It also provides a REPL interface where you can enter commands to navigate directories and visualize folder-based disk usage.
