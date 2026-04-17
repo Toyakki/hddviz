@@ -44,19 +44,20 @@ func main() {
 	}
 	fsys := os.DirFS(absRoot)
 
-	folderMap, stats, err := startScanning(fsys, *limit)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Scanning failed: ", err)
+	// folderMap, stats, err := startScanning(fsys, *limit)
+	// if err != nil {
+	// 	fmt.Fprintln(os.Stderr, "Scanning failed: ", err)
+	// 	printSkipSummary(stats)
+	// 	os.Exit(1)
+	// }
+	folderMap, stats, errs := start_scanning_concurrent(fsys, *limit)
+	if len(errs) != 0 {
+		for err := range errs {
+			fmt.Fprintln(os.Stderr, "Scannig failed:", err)
+		}
 		printSkipSummary(stats)
 		os.Exit(1)
 	}
 	printSkipSummary(stats)
-	// folderMap, errs := start_scanning_concurrent(fsys, *limit)
-	// if len(errs) != 0 {
-	// 	for err := range errs {
-	// 		fmt.Fprintln(os.Stderr, "Scannig failed:", err)
-	// 	}
-	// 	os.Exit(1)
-	// }
 	runREPL(folderMap, ".")
 }
