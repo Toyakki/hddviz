@@ -45,8 +45,8 @@ cd src
 
 ## TODOs for me and any devs
 ### Public deployment
-- [ ] Write a doc for easier cli command installation and usage. The one that uses go install . 
-- [ ] Review .goreleaser.yml for brew public release.
+- [x] Write a doc for easier cli command installation and usage. The one that uses go install . 
+- [x] Review .goreleaser.yml for brew public release.
 
 ### Development:
 
@@ -59,15 +59,13 @@ cd src
 Scanning features:
 - [x] Create goroutines for concurrent scanning of directories to improve performance.
   - [x] Store the prototyped version in .idea folder 
-  - [ ] Write unit tests for them.
-  - [ ] Add a command line flag to enable/disable concurrent scanning.
-  - [ ] Add a command line flag to set the maximum number of goroutines to use for scanning.
-  - [ ] Add a fallback mechanism to sequential scanning if the number of goroutines exceeds a certain threshold to prevent overwhelming the system.
+  - [x] Write unit tests for them.
+  - [x] Add a command line flag to enable/disable concurrent scanning.
+  - [x] Add a fallback mechanism to sequential scanning if the number of goroutines exceeds a certain threshold to prevent overwhelming the system.
 
 REPL features:
-- [ ] A fancier welcome screen.
+- [x] A fancier welcome screen.
 - [ ] Tab completion for path.
-- [ ] Add a bar graph viz of disk usage for each directory.
 
 ## Potential extensions
 - File-system based scanning system to improve performance. For example, WizTree uses the Master File Table (MFT) to quickly scan NTFS file systems, which can be significantly faster than traditional scanning methods.
