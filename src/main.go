@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func printSkipSummary(stats *SkipStats) {
+func printSkipSummary(stats *ScanStats) {
 	if stats == nil {
 		return
 	}

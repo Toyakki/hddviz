@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"sync/atomic"
 	"time"
 )
 
@@ -44,7 +45,8 @@ type DirNode struct {
 
 var ErrSkipped = errors.New("skipped")
 
-type SkipStats struct {
+type ScanStats struct {
+	TotalFileCount atomic.Uint64
 	PermissionSkip []string
 	NoDirSkip      []string
 	FileInfoSkip   []string
@@ -93,7 +95,7 @@ func scanDir(
 	parentPath string,
 	folderMap map[string]*DirNode,
 	limit int,
-	stats *SkipStats,
+	stats *ScanStats,
 ) (int64, error) {
 	var totalSize int64
 	h := &TupleHeap{}
@@ -166,9 +168,9 @@ func scanDir(
 }
 
 // Start filescanning. limit is the number of largest subdirs to show.
-func startScanning(fileSystem fs.FS, limit int) (map[string]*DirNode, *SkipStats, error) {
+func startScanning(fileSystem fs.FS, limit int) (map[string]*DirNode, *ScanStats, error) {
 	folderMap := make(map[string]*DirNode)
-	stats := &SkipStats{}
+	stats := &ScanStats{}
 	start := time.Now()
 	if _, err := scanDir(fileSystem, ".", folderMap, limit, stats); err != nil {
 		// Return the partial results and stats.

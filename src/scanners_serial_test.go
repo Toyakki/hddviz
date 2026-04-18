@@ -83,7 +83,7 @@ func TestScanDir_BasicCountsAndTopK(t *testing.T) {
 	}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &SkipStats{}
+	stats := &ScanStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 1, stats)
 
@@ -107,7 +107,7 @@ func TestScanDir_SymlinkSkipped(t *testing.T) {
 	}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &SkipStats{}
+	stats := &ScanStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 10, stats)
 	ok(t, err)
@@ -129,7 +129,7 @@ func TestScanDir_PermissionDenied(t *testing.T) {
 	}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &SkipStats{}
+	stats := &ScanStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 10, stats)
 
@@ -160,7 +160,7 @@ func TestScanDir_NonExistentChildIsSkipped(t *testing.T) {
 	base["gone/x"] = &fstest.MapFile{Data: make([]byte, 1)}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &SkipStats{}
+	stats := &ScanStats{}
 
 	total, err := scanDir(fsys, ".", folderMap, 10, stats)
 	ok(t, err)
@@ -193,7 +193,7 @@ func TestScanDir_ErrorIsWrapped(t *testing.T) {
 	}
 
 	folderMap := make(map[string]*DirNode)
-	stats := &SkipStats{}
+	stats := &ScanStats{}
 
 	_, err := scanDir(fsys, ".", folderMap, 10, stats)
 	assert(t, err != nil, "expected a permission error to occur")

@@ -23,7 +23,7 @@ func scanDirConcurrent(
 	parentPath string,
 	folderMap map[string]*DirNode,
 	limit int,
-	stats *SkipStats,
+	stats *ScanStats,
 	wg *sync.WaitGroup,
 	errCh chan<- error,
 	mu *sync.Mutex,
@@ -91,7 +91,7 @@ func scanDirConcurrent(
 				mu.Lock()
 				stats.FileInfoSkip = append(stats.FileInfoSkip, childPath)
 				mu.Unlock()
-				return
+				continue
 			}
 			totalSize += info.Size()
 		}
@@ -118,11 +118,11 @@ func scanDirConcurrent(
 	fmt.Printf("Scanned %s: %s\n", filepath.Base(parentPath), sizeify(ByteSize(totalSize)))
 }
 
-func start_scanning_concurrent(fileSystem fs.FS, limit int) (map[string]*DirNode, *SkipStats, []error) {
+func start_scanning_concurrent(fileSystem fs.FS, limit int) (map[string]*DirNode, *ScanStats, []error) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	// Fresh state per run for fair timing
 	folderMap := make(map[string]*DirNode)
-	stats := &SkipStats{}
+	stats := &ScanStats{}
 	start := time.Now()
 	errCh := make(chan error)
 
@@ -165,6 +165,6 @@ func start_scanning_concurrent(fileSystem fs.FS, limit int) (map[string]*DirNode
 		}
 		return nil, stats, errs
 	}
-	fmt.Printf("Scanning completed! Took %v to run. \n", time.Since(start))
+	fmt.Printf("Scanning completed! Took %v to scan %d files. \n", time.Since(start))
 	return folderMap, stats, nil
 }
