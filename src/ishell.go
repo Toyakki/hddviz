@@ -28,12 +28,12 @@ func printNode(path string, folderMap map[string]*DirNode) {
 
 func printWelcome() {
 	fmt.Println(`
-	 __    __   _______   _______   _______  ____    ____  __   ________ 
-	|  |  |  | |       \ |       \ |       \ \   \  /   / |  | |       /  
-	|  |__|  | |  .--.  ||  .--.  ||  .--.  | \   \/   /  |  | \---/  /   
-	|   __   | |  |  |  ||  |  |  ||  |  |  |  \      /   |  |    /  /    
-	|  |  |  | |  '--'  ||  '--'  ||  '--'  |   \    /    |  |   /  /----.
-	|__|  |__| |_______/ |_______/ |_______/     \__/     |__|  /________|
+	 __    __   _______   _______   ____    ____  __   ________ 
+	|  |  |  | |       \ |       \  \   \  /   / |  | |       /  
+	|  |__|  | |  .--.  ||  .--.  |  \   \/   /  |  | \---/  /   
+	|   __   | |  |  |  ||  |  |  |   \      /   |  |    /  /    
+	|  |  |  | |  '--'  ||  '--'  |    \    /    |  |   /  /----.
+	|__|  |__| |_______/ |_______/      \__/     |__|  /________|
 	`)
 }
 
@@ -71,6 +71,7 @@ func runREPL(folderMap map[string]*DirNode, cwd string) {
 			printHelp()
 
 		case "quit", "exit":
+			fmt.Println("quitting hddviz...")
 			return
 		case "pwd":
 			fmt.Println(cwd)
@@ -89,7 +90,7 @@ func runREPL(folderMap map[string]*DirNode, cwd string) {
 			printNode(target, folderMap)
 		case "cd":
 			if len(parts) < 2 {
-				fmt.Println("usage: cd <abs path >")
+				fmt.Println("usage: cd <abs path or relative path >")
 				continue
 			}
 			target := resolvePath(cwd, parts[1])
