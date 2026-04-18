@@ -93,6 +93,7 @@ func scanDirConcurrent(
 				mu.Unlock()
 				continue
 			}
+			stats.TotalFileCount.Add(1)
 			totalSize += info.Size()
 		}
 	}

@@ -169,7 +169,7 @@ func TestScanDir_NonExistentChildIsSkipped(t *testing.T) {
 	equals(t, "gone", filepath.Clean(stats.NoDirSkip[0]))
 }
 
-func TestStartScanning_WithMapFS(t *testing.T) {
+func TestStart_Scanning_WithMapFS(t *testing.T) {
 	fsys := fstest.MapFS{
 		"p/q":   {Data: make([]byte, 3)},
 		"r/s/t": {Data: make([]byte, 4)},
@@ -177,7 +177,7 @@ func TestStartScanning_WithMapFS(t *testing.T) {
 
 	// IMPORTANT: for fs.FS (including fstest.MapFS and os.DirFS),
 	// the "root" path inside the FS is typically ".".
-	folderMap, _, err := startScanning(fsys, 10)
+	folderMap, _, err := start_scanning(fsys, 10)
 	ok(t, err)
 	assert(t, folderMap["."] != nil, "expected folderMap to contain '.' root node")
 	assert(t, folderMap["."].Size == int64(7), "root size=%d, want 7", folderMap["."].Size)

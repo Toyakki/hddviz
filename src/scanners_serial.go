@@ -154,6 +154,9 @@ func scanDir(
 				stats.FileInfoSkip = append(stats.FileInfoSkip, childPath)
 				return 0, fmt.Errorf("stat %q: %w", info, err)
 			}
+			if !info.Mode().IsRegular() {
+				continue
+			}
 			stats.TotalFileCount.Add(1)
 			totalSize += info.Size()
 		}
@@ -169,7 +172,7 @@ func scanDir(
 }
 
 // Start filescanning. limit is the number of largest subdirs to show.
-func startScanning(fileSystem fs.FS, limit int) (map[string]*DirNode, *ScanStats, error) {
+func start_scanning(fileSystem fs.FS, limit int) (map[string]*DirNode, *ScanStats, error) {
 	folderMap := make(map[string]*DirNode)
 	stats := &ScanStats{}
 	start := time.Now()

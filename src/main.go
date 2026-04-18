@@ -30,6 +30,7 @@ func main() {
 
 	root := flag.String("root", home, "root directory to scan")
 	limit := flag.Int("limit", 10, "number of largest subfolders to keep per directory")
+	estimate := flag.Bool("estimate", false, "turn on a fast less accurate scanning mode.")
 
 	flag.Parse()
 	absRoot, err := filepath.Abs(*root)
@@ -44,18 +45,24 @@ func main() {
 	}
 	fsys := os.DirFS(absRoot)
 
-	// folderMap, stats, errs := start_scanning_concurrent(fsys, *limit)
-	// if len(errs) != 0 {
-	// 	for err := range errs {
-	// 		fmt.Fprintln(os.Stderr, "Concurrent scannig failed:", err)
-	// 	}
-	// 	fmt.Println("Falling back to serial scanning...")
-	// }
-	folderMap, stats, err := startScanning(fsys, *limit)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Scanning failed: ", err)
-		printSkipSummary(stats)
-		os.Exit(1)
+	var folderMap map[string]*DirNode
+	var stats *ScanStats
+
+	if *estimate {
+		var errs []error
+		folderMap, stats, errs = start_scanning_concurrent(fsys, *limit)
+		if len(errs) != 0 {
+			for _, err := range errs {
+				fmt.Fprintln(os.Stderr, "Concurrent scannig failed:", err)
+			}
+		}
+	} else {
+		folderMap, stats, err = start_scanning(fsys, *limit)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Scanning failed: ", err)
+			printSkipSummary(stats)
+			os.Exit(1)
+		}
 	}
 	printSkipSummary(stats)
 	runREPL(folderMap, ".")
