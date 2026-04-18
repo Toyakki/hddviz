@@ -165,6 +165,6 @@ func start_scanning_concurrent(fileSystem fs.FS, limit int) (map[string]*DirNode
 		}
 		return nil, stats, errs
 	}
-	fmt.Printf("Scanning completed! Took %v to scan %d files. \n", time.Since(start))
+	fmt.Printf("Scanning completed! Took %v to scan %d files. \n", time.Since(start), stats.TotalFileCount.Load())
 	return folderMap, stats, nil
 }

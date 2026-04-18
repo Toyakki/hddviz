@@ -44,18 +44,18 @@ func main() {
 	}
 	fsys := os.DirFS(absRoot)
 
-	folderMap, stats, errs := start_scanning_concurrent(fsys, *limit)
-	if len(errs) != 0 {
-		for err := range errs {
-			fmt.Fprintln(os.Stderr, "Concurrent scannig failed:", err)
-		}
-		fmt.Println("Falling back to serial scanning...")
-		folderMap, stats, err = startScanning(fsys, *limit)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Scanning failed: ", err)
-			printSkipSummary(stats)
-			os.Exit(1)
-		}
+	// folderMap, stats, errs := start_scanning_concurrent(fsys, *limit)
+	// if len(errs) != 0 {
+	// 	for err := range errs {
+	// 		fmt.Fprintln(os.Stderr, "Concurrent scannig failed:", err)
+	// 	}
+	// 	fmt.Println("Falling back to serial scanning...")
+	// }
+	folderMap, stats, err := startScanning(fsys, *limit)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Scanning failed: ", err)
+		printSkipSummary(stats)
+		os.Exit(1)
 	}
 	printSkipSummary(stats)
 	runREPL(folderMap, ".")

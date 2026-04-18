@@ -154,6 +154,7 @@ func scanDir(
 				stats.FileInfoSkip = append(stats.FileInfoSkip, childPath)
 				return 0, fmt.Errorf("stat %q: %w", info, err)
 			}
+			stats.TotalFileCount.Add(1)
 			totalSize += info.Size()
 		}
 	}
@@ -176,6 +177,6 @@ func startScanning(fileSystem fs.FS, limit int) (map[string]*DirNode, *ScanStats
 		// Return the partial results and stats.
 		return folderMap, stats, err
 	}
-	fmt.Printf("Scanning completed! Took %v to run. \n", time.Since(start))
+	fmt.Printf("Scanning completed! Took %v to scan %d files. \n", time.Since(start), stats.TotalFileCount.Load())
 	return folderMap, stats, nil
 }
