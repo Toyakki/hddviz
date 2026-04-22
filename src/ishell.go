@@ -28,12 +28,11 @@ func printNode(path string, folderMap map[string]*DirNode) {
 
 func printWelcome() {
 	fmt.Println(`
-	 __    __   _______   _______   ____    ____  __   ________ 
-	|  |  |  | |       \ |       \  \   \  /   / |  | |       /  
-	|  |__|  | |  .--.  ||  .--.  |  \   \/   /  |  | \---/  /   
-	|   __   | |  |  |  ||  |  |  |   \      /   |  |    /  /    
-	|  |  |  | |  '--'  ||  '--'  |    \    /    |  |   /  /----.
-	|__|  |__| |_______/ |_______/      \__/     |__|  /________|
+	hh           dd      dd         iii       
+	hh           dd      dd vv   vv     zzzzz 
+	hhhhhh   dddddd  dddddd  vv vv  iii   zz  
+	hh   hh dd   dd dd   dd   vvv   iii  zz   
+	hh   hh  dddddd  dddddd    v    iii zzzzz 
 	`)
 }
 
