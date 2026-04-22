@@ -6,42 +6,56 @@ https://github.com/user-attachments/assets/d022c779-ca6d-41db-8f7b-a9597c6529ef
 ## Motivation
 Unlike Linux CLI, macOS does not have a convenient command line tool to visualize hard disk usage. This tool aims to visualize hard disk usage from your command line everywhere. It also provides a REPL interface where you can enter commands to navigate directories and visualize folder-based disk usage.
 
-hddviz is a file-system agnostic CLI tool that provides a simple test-based listing of disk usage, making it easier for users to identify large files and directories. It uses a combination of heap and recursive algorithm to efficiently scan and visualize disk usage.
-Currently, it is only tested on macOS, but I plan to add support for Windows in the future, if I have time.
+hddviz is a file-system agnostic CLI tool that provides a simple test-based listing of disk usage, making it easier for users to identify large files and directories. This tool scans all the files under the Home directory and lets you enter the REPL interface to navigate through the directories. The following commands are so far supported in the REPL interface.
 
-## Why is this project not cool?
-- Reinventing the wheel: There are already existing tools like ncdu, WizTree, and DaisyDisk that provide similar functionality with more features and better performance.
-- Not a GUI tool
-- Not a file-system based scanning system. 
-
-## Why is this project cool?
-- Cross-platform: Works on both Windows and macOS.
-- No third-party dependenciees: Pure Go implementation with built-in libraries.
-- Interoperability: Provides a simple text-based listing.
-- Performance: Uses heaps and dfs to scan and visualize disk usage. Potentially adding a goroitune for concurrent scanning of directories to further improve performance. (.idea/)
-- Ease of use: Provides a REPL interface for interactive exploration of disk usage.
-
-## Why is it good for me?
-- Nice to learn golang
-- Motivate me to buy a Linux machine so i don't have to maintain this and just run ncdu.
-
-## How to use this cli tool?
-You can download tar.gz from the releases page or clone this repository.
-
-### Cloning method
-1. Clone the repository
-2. Go to the src directory
+## How to install (macOS only so far.)
+1. Download the tar.gz file from the releases page.
+2. Extract it:
 ```bash
-cd src
+tar -xzf hddviz.tar.gz
 ```
-3. Run `go install .` to install the CLI tool
-4. Run `hddviz` to start the CLI tool
 
-## Release method
-1. Go to the releases page and download the tar.gz file for your operating system.
-2. Extract the tar.gz file and move the hddviz binary to a directory in your CLI tool path. Usually it is /usr/local/bin for macOS.
+3. There are multiple ways to add the hddviz binary as your CLI tool. 
+
+a. If you have a homebrew, then try running
+```bash
+# Apple Silicon
+install -m 0700 hddviz /opt/homebrew/bin/hddviz
+
+# Intel
+install -m 0700 hddviz /usr/local/bin/hddviz
+```
+b. If you don't have homebrew, you can move the hddviz binary to a directory in your CLI tool path. You need to add it to PATH first:
+```bash
+mkdir -p "$HOME/.local/bin"
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
+source "$HOME/.zshrc"
+install -m 0700 hddviz "$HOME/.local/bin/hddviz"
+```
+
+4. Run `hddviz` to start the CLI tool. For the supported flag, please take a look at the `hddviz --help` output.
+
+That's it. Now the world is your oyster.
+
+## Supported commands in REPL:
+You can see the following commands by running help in the REPL interface. But here is a more detailed description of the supported commands in the REPL interface:
+- `help`: Display the list of available commands and their descriptions.
+- `ls`: List the top-K largest subdirectories under your current path. 
+- `inspect <path>`: Show summary for a path without changing the current directory. <path> can be a relative path (including '../') or an absolute path.
+- `cd <path>`: Change the current directory to the specified folder.
+- `pwd`: Print the current directory path.
+- `quit`: Exit the REPL interface.
 
 
+## Technical features
+- [x] Uses a heap for top-K largest subdirs listing
+- [x] Uses recursion to scan all directories.
+- [x] Supports concurrent scanning (overcounts file usage, so it is only used for estimation.)
+- [x] REPL interface
+
+## Selfish reasons for me to build this:
+- [x] Nice to learn golang for me.
+- [x] Motivate me to buy a Linux machine so I don't have to maintain this project and just run ncdu. 
 
 ## TODOs for me and any devs
 ### Public deployment
@@ -61,11 +75,14 @@ Scanning features:
   - [x] Store the prototyped version in .idea folder 
   - [x] Write unit tests for them.
   - [x] Add a command line flag to enable/disable concurrent scanning.
-  - [x] Add a fallback mechanism to sequential scanning if the number of goroutines exceeds a certain threshold to prevent overwhelming the system.
+
 
 REPL features:
 - [x] A fancier welcome screen.
 - [ ] Tab completion for path.
+- [ ] I also need to make sure that both cd and ls support the folderName with space in it. Use both forward and backward slashes like 'cd Application\ Support/'.
+
 
 ## Potential extensions
+- Support for Windows?
 - File-system based scanning system to improve performance. For example, WizTree uses the Master File Table (MFT) to quickly scan NTFS file systems, which can be significantly faster than traditional scanning methods.
