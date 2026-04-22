@@ -30,7 +30,7 @@ func main() {
 
 	root := flag.String("root", home, "root directory to scan")
 	limit := flag.Int("limit", 10, "number of largest subfolders to keep per directory")
-	estimate := flag.Bool("estimate", false, "turn on a fast less accurate scanning mode.")
+	estimate := flag.Bool("est", false, "turn on an estimate mode.")
 
 	flag.Parse()
 	absRoot, err := filepath.Abs(*root)
