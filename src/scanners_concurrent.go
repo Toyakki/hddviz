@@ -53,6 +53,9 @@ func scanDirConcurrent(
 	var childPaths []string
 	var childWG sync.WaitGroup
 	for _, entry := range entries {
+		if entry.Type()&fs.ModeSymlink != 0 {
+			continue
+		}
 		childPath := filepath.Join(parentPath, entry.Name())
 		if entry.IsDir() {
 			childPaths = append(childPaths, childPath)
