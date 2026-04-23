@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
@@ -16,6 +17,27 @@ func sendErr(errCh chan<- error, err error) {
 		return
 	}
 	errCh <- err
+}
+
+func reportProgress(done <-chan struct{}, stats *ScanStats) {
+	ticker := time.NewTicker(300 * time.Millisecond)
+	defer ticker.Stop()
+	var last uint64
+	for {
+		select {
+		case <-done:
+			n := stats.TotalFileCount.Load()
+			fmt.Fprintf(os.Stderr, "\r\033[KScanned: %d files\n", n)
+			return
+		case <-ticker.C:
+			n := stats.TotalFileCount.Load()
+			if n != last {
+				fmt.Fprintf(os.Stderr, "\r\033[KScanned: %d files", n)
+				last = n
+			}
+		}
+
+	}
 }
 
 func scanDirConcurrent(
@@ -118,8 +140,6 @@ func scanDirConcurrent(
 		TopKChildren: showChildren(h),
 	}
 	mu.Unlock()
-
-	fmt.Printf("Scanned %s: %s\n", filepath.Base(parentPath), sizeify(ByteSize(totalSize)))
 }
 
 func start_scanning_concurrent(fileSystem fs.FS, limit int) (map[string]*DirNode, *ScanStats, []error) {
@@ -161,8 +181,16 @@ func start_scanning_concurrent(fileSystem fs.FS, limit int) (map[string]*DirNode
 		close(errCh)
 	}()
 
+	progressStop := make(chan struct{})
+	var progressWG sync.WaitGroup
+	progressWG.Add(1)
+	go func() {
+		defer progressWG.Done()
+		reportProgress(progressStop, stats)
+	}()
 	<-collectDone
-
+	close(progressStop)
+	progressWG.Wait()
 	if len(errs) > 0 {
 		for _, err := range errs {
 			fmt.Println("Error occurred:", err)
