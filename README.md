@@ -12,7 +12,7 @@ hddviz is a file-system agnostic CLI tool that provides a simple test-based list
 1. Download the tar.gz file from the releases page.
 2. Extract it:
 ```bash
-tar -xzf hddviz.tar.gz
+tar -xzf hddviz_*_darwin_*.tar.gz
 ```
 
 3. There are multiple ways to add the hddviz binary as your CLI tool. 
@@ -33,9 +33,31 @@ source "$HOME/.zshrc"
 install -m 0700 hddviz "$HOME/.local/bin/hddviz"
 ```
 
-4. Run `hddviz` to start the CLI tool. For the supported flag, please take a look at the `hddviz --help` output.
+c. Install from source code:
 
-That's it. Now the world is your oyster.
+Go to src/ folder and compile the code using `make build`.
+Run
+```bash
+go install .
+```
+This installs `hddviz` into:
+
+- `$GOBIN` (if set), or
+- `$(go env GOPATH)/bin` (default: `$HOME/go/bin`)
+
+If `hddviz` is not found, add Go bin to your PATH:
+
+```bash
+echo 'export PATH="$(go env GOPATH)/bin:$PATH"' >> "$HOME/.zshrc"
+source "$HOME/.zshrc"
+```
+
+4. Verify:
+```bash
+hddviz --help
+```
+
+That's it. You can just run hddviz from your terminal. 
 
 ## Supported commands in REPL:
 You can see the following commands by running help in the REPL interface. But here is a more detailed description of the supported commands in the REPL interface:
@@ -47,11 +69,12 @@ You can see the following commands by running help in the REPL interface. But he
 - `quit`: Exit the REPL interface.
 
 
-## Technical features
+## Technical parts:
 - [x] Uses a heap for top-K largest subdirs listing
 - [x] Uses recursion to scan all directories.
-- [x] Supports concurrent scanning (overcounts file usage, so it is only used for estimation.)
-- [x] REPL interface
+- [x] Supports concurrent scanning (sometimes overcounts file usage, so it is only used for estimation.)
+- [x] REPL interface.
+- [x] Added both blackbox and whitebox tests for scanning logic.
 
 ## Selfish reasons for me to build this:
 - [x] Nice to learn golang for me.
@@ -79,9 +102,8 @@ Scanning features:
 
 REPL features:
 - [x] A fancier welcome screen.
-- [ ] Tab completion for path.
-- [ ] I also need to make sure that both cd and ls support the folderName with space in it. Use both forward and backward slashes like 'cd Application\ Support/'.
-
+- [x] Tab completion for path.
+- [x] I also need to make sure that both cd and ls support the folderName with space in it. Use both forward and backward slashes like 'cd Application\ Support'.
 
 ## Potential extensions
 - Support for Windows?
