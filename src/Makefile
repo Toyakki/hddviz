@@ -6,6 +6,7 @@ all: build run clean
 
 build:
 	go build -v -ldflags=-w .
+	go install .
 
 lint:
 	golangci-lint run .

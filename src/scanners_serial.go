@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -166,8 +167,6 @@ func scanDir(
 		Size:         totalSize,
 		TopKChildren: showChildren(h),
 	}
-
-	fmt.Printf("Scanned %s: %s\n", filepath.Base(parentPath), sizeify(ByteSize(totalSize)))
 	return totalSize, nil
 }
 
@@ -176,8 +175,20 @@ func start_scanning(fileSystem fs.FS, limit int) (map[string]*DirNode, *ScanStat
 	folderMap := make(map[string]*DirNode)
 	stats := &ScanStats{}
 	start := time.Now()
-	if _, err := scanDir(fileSystem, ".", folderMap, limit, stats); err != nil {
-		// Return the partial results and stats.
+
+	progressCh := make(chan struct{})
+	var progressWG sync.WaitGroup
+	progressWG.Add(1)
+	go func() {
+		defer progressWG.Done()
+		reportProgress(progressCh, stats)
+	}()
+
+	_, err := scanDir(fileSystem, ".", folderMap, limit, stats)
+	close(progressCh)
+	progressWG.Wait()
+
+	if err != nil {
 		return folderMap, stats, err
 	}
 	fmt.Printf("Scanning completed! Took %v to scan %d files. \n", time.Since(start), stats.TotalFileCount.Load())
