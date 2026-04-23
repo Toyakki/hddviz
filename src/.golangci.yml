@@ -16,3 +16,9 @@ linters:
     - errcheck
     - ineffassign
     - unused
+  settings:
+    gosec:
+      excludes:
+        - G304 # File inclusion via variable - expected for file encryption tool
+        - G204 # Subprocess with variable - test builds
+        - G115
