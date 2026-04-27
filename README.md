@@ -59,6 +59,15 @@ hddviz --help
 
 That's it. You can just run hddviz from your terminal. 
 
+## Troubleshooting
+Some of you may face the issue saying that hddviz is a malware from apple.
+You need to go the system settings -> privacy & security -> security. You may have the hddviz app blocked from running. Click open anyway and you should be able to run hddviz from your terminal. 
+
+
+**Trust me, hddviz is not a malware.** You can also clone the source code and build it yourself if you don't trust the binary.
+
+
+
 ## Supported commands in REPL:
 You can see the following commands by running help in the REPL interface. But here is a more detailed description of the supported commands in the REPL interface:
 - `help`: Display the list of available commands and their descriptions.
