@@ -120,6 +120,11 @@ func scanDirConcurrent(
 			}
 			stats.TotalFileCount.Add(1)
 			totalSize += info.Size()
+
+			heap.Push(h, ChildTuple{Path: childPath, Size: info.Size()})
+			if h.Len() > limit {
+				heap.Pop(h)
+			}
 		}
 	}
 	childWG.Wait()
