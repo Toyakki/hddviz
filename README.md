@@ -1,12 +1,13 @@
 # hddviz CLI
 
-## Demo video
-https://github.com/user-attachments/assets/d022c779-ca6d-41db-8f7b-a9597c6529ef
+## Demo screenshot from my laptop
+![demo](/assets/sample_run.png)
 
 ## Motivation
 Unlike Linux CLI, macOS does not have a convenient command line tool to visualize hard disk usage. This tool aims to visualize hard disk usage from your command line everywhere. It also provides a REPL interface where you can enter commands to navigate directories and visualize folder-based disk usage.
 
-hddviz is a file-system agnostic CLI tool that provides a simple test-based listing of disk usage, making it easier for users to identify large files and directories. This tool scans all the files under the Home directory and lets you enter the REPL interface to navigate through the directories. The following commands are so far supported in the REPL interface.
+hddviz helps you to identify large files and subdirectories that are taking up a lot of space on your hard drive from your terminal. Please refer to `hddviz --help` for more details on how to use it.
+
 
 ## How to install (macOS only so far.)
 1. Download the tar.gz file from the releases page.
@@ -57,7 +58,11 @@ source "$HOME/.zshrc"
 hddviz --help
 ```
 
-That's it. You can just run hddviz from your terminal. 
+5. Run:
+```bash
+hddviz -est
+```
+I recommend using the `-est` flag since this enables the concurrent scanning feature, which is much faster than the serial scanning mode. I created the `-est` flag since there could be some concurrency issues that I have not encountered yet. `hddviz` alone will guarantee the accuracy of the disk usage using the serial scanning mode.
 
 ## Troubleshooting
 Some of you may face the issue saying that hddviz is a malware from apple.
