@@ -21,7 +21,7 @@ func TestScanDirConcurrent(t *testing.T) {
 	root := folderMap["."]
 	assert(t, root != nil, "Missing node for '.'")
 	equals(t, int64(80), root.Size)
-	equals(t, []string{"a"}, root.TopKChildren)
+	equals(t, []string{"file1"}, root.TopKChildren)
 	assert(t, folderMap["a"] != nil, "Node 'a' is missing.")
 	equals(t, int64(20), folderMap["a"].Size)
 	assert(t, folderMap["b"] != nil, "Node 'b' is missing.")
